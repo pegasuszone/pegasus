@@ -1,0 +1,22 @@
+{
+    "sourceFile": "Cargo.toml",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1654957721270,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1654989137050,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -52,8 +52,9 @@\n cw20 = \"0.9.1\"\n cw721 = \"0.9.2\"\n cw721-base = { version = \"0.9.2\", features = [\"library\"] }\n cw1155 = \"0.9.1\"\n+sg-std = \"0.12.0\"\n \n [dev-dependencies]\n cosmwasm-schema = \"1.0.0\"\n cw-multi-test = \"0.13.2\"\n"
+                }
+            ],
+            "date": 1654957721270,
+            "name": "Commit-0",
+            "content": "[package]\nname = \"p2p-nft-trade\"\nversion = \"0.1.0\"\nauthors = [\"Maurits Bos <mb.brains@gmail.com>\"]\nedition = \"2018\"\n\nexclude = [\n  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.\n  \"contract.wasm\",\n  \"hash.txt\",\n]\n\n# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[profile.release]\nopt-level = 3\ndebug = false\nrpath = false\nlto = true\ndebug-assertions = false\ncodegen-units = 1\npanic = 'abort'\nincremental = false\noverflow-checks = true\n\n[features]\n# for more explicit tests, cargo test --features=backtraces\nbacktraces = [\"cosmwasm-std/backtraces\"]\n# use library feature to disable all instantiate/execute/query exports\nlibrary = []\n\n[package.metadata.scripts]\noptimize = \"\"\"docker run --rm -v \"$(pwd)\":/code \\\n  --mount type=volume,source=\"$(basename \"$(pwd)\")_cache\",target=/code/target \\\n  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \\\n  cosmwasm/rust-optimizer:0.12.6\n\"\"\"\n\n[dependencies]\ncosmwasm-std = { version = \"0.16.3\" }\ncosmwasm-storage = { version = \"0.16.3\" }\ncw-storage-plus = \"0.8.0\"\ncw2 = \"0.8.1\"\nschemars = \"0.8.3\"\nserde = { version = \"1.0.136\", default-features = false, features = [\"derive\"] }\nserde-json-wasm = \"0.3.2\"\nbase64 = \"0.13.0\"\nthiserror = { version = \"1.0.26\" }\ncw20 = \"0.9.1\"\ncw721 = \"0.9.2\"\ncw721-base = { version = \"0.9.2\", features = [\"library\"] }\ncw1155 = \"0.9.1\"\n\n[dev-dependencies]\ncosmwasm-schema = \"1.0.0\"\ncw-multi-test = \"0.13.2\"\n"
+        }
+    ]
+}

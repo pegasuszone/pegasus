@@ -1,0 +1,74 @@
+{
+    "sourceFile": "src/msg.rs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 14,
+            "patches": [
+                {
+                    "date": 1654990239661,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1654990270037,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,9 +13,9 @@\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n pub enum ExecuteMsg {\n     // Owner can transfer cw721 to the contract\n-    ReceiveNft {cw}\n+    ReceiveNft(Cw721ReceiveMsg),\n \n \n     Increment {},\n     Reset { count: i32 },\n"
+                },
+                {
+                    "date": 1654990748434,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,12 +13,13 @@\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n pub enum ExecuteMsg {\n     // Owner can transfer cw721 to the contract\n+    // Alternative could be that the owner of the contract enables the contract to send the NFT from the owner to the receiver. In that way the nft would never be owned by the contract.\n     ReceiveNft(Cw721ReceiveMsg),\n-\n-\n-    Increment {},\n+    AcceptTradeOwner {},\n+    RevokeNftOwner {},\n+    \n     Reset { count: i32 },\n }\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n"
+                },
+                {
+                    "date": 1655051828365,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,10 +16,13 @@\n     // Owner can transfer cw721 to the contract\n     // Alternative could be that the owner of the contract enables the contract to send the NFT from the owner to the receiver. In that way the nft would never be owned by the contract.\n     ReceiveNft(Cw721ReceiveMsg),\n     AcceptTradeOwner {},\n-    RevokeNftOwner {},\n+    CancelTrade {},\n     \n+\n+    \n+    \n     Reset { count: i32 },\n }\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n"
+                },
+                {
+                    "date": 1655054476994,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,18 +12,16 @@\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n pub enum ExecuteMsg {\n-    // Owner can transfer cw721 to the contract\n+    // Owner or peer can send the cw721 to the contract.\n     // Alternative could be that the owner of the contract enables the contract to send the NFT from the owner to the receiver. In that way the nft would never be owned by the contract.\n     ReceiveNft(Cw721ReceiveMsg),\n-    AcceptTradeOwner {},\n+    \n     CancelTrade {},\n     \n-\n+    AcceptTrade {},\n     \n-    \n-    Reset { count: i32 },\n }\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n"
+                },
+                {
+                    "date": 1655054893154,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -5,8 +5,10 @@\n \n // instantiate msg sets the owner of the contract \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct InstantiateMsg {\n+    pub offer_id: String,\n+    pub requested_id: String, \n     pub count: i32,\n }\n \n \n@@ -19,8 +21,9 @@\n     \n     CancelTrade {},\n     \n     AcceptTrade {},\n+\n     \n }\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n"
+                },
+                {
+                    "date": 1655054915449,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,10 +6,10 @@\n // instantiate msg sets the owner of the contract \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct InstantiateMsg {\n     pub offer_id: String,\n-    pub requested_id: String, \n-    pub count: i32,\n+    pub requested_id: String,\n+    pub expiry_date: String,\n }\n \n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n"
+                },
+                {
+                    "date": 1655056204466,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,8 +7,9 @@\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct InstantiateMsg {\n     pub offer_id: String,\n     pub requested_id: String,\n+    pub peer_addr: Option<String>,\n     pub expiry_date: String,\n }\n \n \n"
+                },
+                {
+                    "date": 1655056261969,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -21,11 +21,9 @@\n     ReceiveNft(Cw721ReceiveMsg),\n     \n     CancelTrade {},\n     \n-    AcceptTrade {},\n-\n-    \n+    AcceptTrade (Cw721ReceiveMsg),\n }\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n"
+                },
+                {
+                    "date": 1655056393721,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,9 +27,18 @@\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n #[serde(rename_all = \"snake_case\")]\n pub enum QueryMsg {\n-    // GetCount returns the current count as a json-encoded number\n+    // get the id of the token that is requested\n+    RequestId {},\n+    \n+    // get the id of the token that is offered\n+    OfferId{},\n+\n+    // get ownerid\n+    Owner{},\n+\n+    Peer{},\n     GetCount {},\n }\n \n // We define a custom struct for each query response\n"
+                },
+                {
+                    "date": 1655057462410,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -36,10 +36,13 @@\n \n     // get ownerid\n     Owner{},\n \n+    // get optional peer id\n     Peer{},\n-    GetCount {},\n+\n+    // Get all the trade data\n+    TradeData{},\n }\n \n // We define a custom struct for each query response\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n"
+                },
+                {
+                    "date": 1655057537372,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -45,7 +45,7 @@\n }\n \n // We define a custom struct for each query response\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n-pub struct CountResponse {\n-    pub count: i32,\n+pub struct RequestIdResponse {\n+    pub token_id: i32,\n }\n"
+                },
+                {
+                    "date": 1655057542678,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -46,6 +46,6 @@\n \n // We define a custom struct for each query response\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct RequestIdResponse {\n-    pub token_id: i32,\n+    pub tokenId: i32,\n }\n"
+                },
+                {
+                    "date": 1655057549924,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -46,6 +46,6 @@\n \n // We define a custom struct for each query response\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct RequestIdResponse {\n-    pub tokenId: i32,\n+    pub token_id: i32,\n }\n"
+                },
+                {
+                    "date": 1655057665482,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -45,7 +45,12 @@\n }\n \n // We define a custom struct for each query response\n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n-pub struct RequestIdResponse {\n-    pub token_id: i32,\n+pub struct TokenIdResponse {\n+    pub token_id: String,\n }\n+\n+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n+pub struct AddrResponse {\n+    pub addr: String,\n+}\n"
+                }
+            ],
+            "date": 1654990239661,
+            "name": "Commit-0",
+            "content": "use schemars::JsonSchema;\nuse serde::{Deserialize, Serialize};\nuse cw721::Cw721ReceiveMsg;\n\n\n// instantiate msg sets the owner of the contract \n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\npub struct InstantiateMsg {\n    pub count: i32,\n}\n\n\n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n#[serde(rename_all = \"snake_case\")]\npub enum ExecuteMsg {\n    // Owner can transfer cw721 to the contract\n    ReceiveNft {cw}\n\n\n    Increment {},\n    Reset { count: i32 },\n}\n\n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n#[serde(rename_all = \"snake_case\")]\npub enum QueryMsg {\n    // GetCount returns the current count as a json-encoded number\n    GetCount {},\n}\n\n// We define a custom struct for each query response\n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\npub struct CountResponse {\n    pub count: i32,\n}\n"
+        }
+    ]
+}

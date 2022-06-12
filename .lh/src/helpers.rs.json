@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/helpers.rs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1654987372803,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1654987372803,
+            "name": "Commit-0",
+            "content": "use schemars::JsonSchema;\nuse serde::{Deserialize, Serialize};\n\nuse cosmwasm_std::{\n    to_binary, Addr, CosmosMsg, CustomQuery, Querier, QuerierWrapper, StdResult, WasmMsg, WasmQuery,\n};\n\nuse crate::msg::{CountResponse, ExecuteMsg, QueryMsg};\n\n/// CwTemplateContract is a wrapper around Addr that provides a lot of helpers\n/// for working with this.\n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\npub struct CwTemplateContract(pub Addr);\n\nimpl CwTemplateContract {\n    pub fn addr(&self) -> Addr {\n        self.0.clone()\n    }\n\n    pub fn call<T: Into<ExecuteMsg>>(&self, msg: T) -> StdResult<CosmosMsg> {\n        let msg = to_binary(&msg.into())?;\n        Ok(WasmMsg::Execute {\n            contract_addr: self.addr().into(),\n            msg,\n            funds: vec![],\n        }\n        .into())\n    }\n\n    /// Get Count\n    pub fn count<Q, T, CQ>(&self, querier: &Q) -> StdResult<CountResponse>\n    where\n        Q: Querier,\n        T: Into<String>,\n        CQ: CustomQuery,\n    {\n        let msg = QueryMsg::GetCount {};\n        let query = WasmQuery::Smart {\n            contract_addr: self.addr().into(),\n            msg: to_binary(&msg)?,\n        }\n        .into();\n        let res: CountResponse = QuerierWrapper::<>::new(querier).query(&query)?;\n        Ok(res)\n    }\n}\n"
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "sourceFile": "src/state.rs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1654989305858,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1655054821584,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,8 +6,9 @@\n \n #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\n pub struct State {\n     pub owner: Addr,\n+    pub requested_token_id: String,\n     pub peer: Option<Addr>,\n }\n \n \n"
+                }
+            ],
+            "date": 1654989305858,
+            "name": "Commit-0",
+            "content": "use schemars::JsonSchema;\nuse serde::{Deserialize, Serialize};\n\nuse cosmwasm_std::Addr;\nuse cw_storage_plus::Item;\n\n#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]\npub struct State {\n    pub owner: Addr,\n    pub peer: Option<Addr>,\n}\n\n\n\npub const STATE: Item<State> = Item::new(\"state\");\n"
+        }
+    ]
+}
