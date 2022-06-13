@@ -1,30 +1,16 @@
-# CosmWasm Starter Pack
 
-This is a template to build smart contracts in Rust to run inside a
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
-To understand the framework better, please read the overview in the
-[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
-and dig into the [cosmwasm docs](https://www.cosmwasm.com).
-This assumes you understand the theory and just want to get coding.
+# Peer-2-Peer NFT trade contract
 
-## Creating a new repo from template
+This contract allows you to offer a nft you own for a nft someone else owns
+Inspiration took from the nft marketplace "https://github.com/public-awesome/marketplace/blob/bfab827cdff84f76f4a637edb3920042c1606b4c/contracts/marketplace/src/state.rshg "
 
-Assuming you have a recent version of rust and cargo (v1.58.1+) installed
-(via [rustup](https://rustup.rs/)),
-then the following should get you a new repo to start a contract:
+First, the owner of the nft needs to approve the contract to spend the token (see cw721-base (approve message)[https://github.com/CosmWasm/cw-nfts/blob/4e26419bb02f4b871fda487964a80bd419207428/contracts/cw721-base/src/execute.rs#L50])
 
-Install [cargo-generate](https://github.com/ashleygwilliams/cargo-generate) and cargo-run-script.
-Unless you did that before, run this line now:
-
-```sh
-cargo install cargo-generate --features vendored-openssl
-cargo install cargo-run-script
-```
-
-Now, use it to create your new contract.
-Go to the folder in which you want to place it and run:
+Then, the contract will set a Ask offer just like the market place only the prive is a specific nft token. 
 
 
+
+## cosmwasm template notes
 **Latest: 1.0.0-beta6**
 
 ```sh

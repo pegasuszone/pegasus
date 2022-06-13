@@ -8,8 +8,9 @@ use cw721::Cw721ReceiveMsg;
 pub struct InstantiateMsg {
     pub offer_id: String,
     pub requested_id: String,
-    pub peer_addr: Option<String>,
-    pub expiry_date: String,
+    pub peer_addr: String,
+    pub end_height: Option<u64>,
+    pub end_time: Option<u64>,
 }
 
 

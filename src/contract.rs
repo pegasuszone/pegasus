@@ -21,10 +21,21 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
+
+    // validate if owner is owner of offered nft
+    let token = self.tokens.load(deps.storage, &token_id);
+    
+
+    //validate if the peer is owner of the requested nft
+
+    
     let state = State {
         owner: info.sender.clone(),
-        peer: msg.count,
-    };
+        peer: deps.api.addr_validate(&msg.peer_addr)?,
+
+        requested_token_id: msg.requested_id};
+
+
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     STATE.save(deps.storage, &state)?;
 
@@ -42,8 +53,9 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Increment {} => try_increment(deps),
-        ExecuteMsg::Reset { count } => try_reset(deps, info, count),
+
+        // ExecuteMsg::Increment {} => try_increment(deps),
+        // ExecuteMsg::Reset { count } => try_reset(deps, info, count),
     }
 }
 

@@ -1,18 +1,16 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use cosmwasm_std::{to_binary, Addr, Api, BlockInfo, StdError, StdResult, Timestamp, WasmMsg, CustomQuery, Querier, QuerierWrapper, WasmQuery};
+use sg_std::CosmosMsg;
+use thiserror::Error;
 
-use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, CustomQuery, Querier, QuerierWrapper, StdResult, WasmMsg, WasmQuery,
-};
+use crate::msg::ExecuteMsg;
 
-use crate::msg::{CountResponse, ExecuteMsg, QueryMsg};
-
-/// CwTemplateContract is a wrapper around Addr that provides a lot of helpers
-/// for working with this.
+/// MarketplaceContract is a wrapper around Addr that provides a lot of helpers
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct CwTemplateContract(pub Addr);
+pub struct P2pMarketplaceContract(pub Addr);
 
-impl CwTemplateContract {
+impl P2pMarketplaceContract {
     pub fn addr(&self) -> Addr {
         self.0.clone()
     }
@@ -26,21 +24,54 @@ impl CwTemplateContract {
         }
         .into())
     }
+}
 
-    /// Get Count
-    pub fn count<Q, T, CQ>(&self, querier: &Q) -> StdResult<CountResponse>
-    where
-        Q: Querier,
-        T: Into<String>,
-        CQ: CustomQuery,
-    {
-        let msg = QueryMsg::GetCount {};
-        let query = WasmQuery::Smart {
-            contract_addr: self.addr().into(),
-            msg: to_binary(&msg)?,
+pub fn map_validate(api: &dyn Api, addresses: &[String]) -> StdResult<Vec<Addr>> {
+    addresses
+        .iter()
+        .map(|addr| api.addr_validate(addr))
+        .collect()
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum ExpiryRangeError {
+    #[error("{0}")]
+    Std(#[from] StdError),
+
+    #[error("Invalid expiration range")]
+    InvalidExpirationRange {},
+
+    #[error("Expiry min > max")]
+    InvalidExpiry {},
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ExpiryRange {
+    pub min: u64,
+    pub max: u64,
+}
+
+impl ExpiryRange {
+    pub fn new(min: u64, max: u64) -> Self {
+        ExpiryRange { min, max }
+    }
+
+    /// Validates if given expires time is within the allowable range
+    pub fn is_valid(&self, block: &BlockInfo, expires: Timestamp) -> Result<(), ExpiryRangeError> {
+        let now = block.time;
+        if !(expires > now.plus_seconds(self.min) && expires <= now.plus_seconds(self.max)) {
+            return Err(ExpiryRangeError::InvalidExpirationRange {});
         }
-        .into();
-        let res: CountResponse = QuerierWrapper::<>::new(querier).query(&query)?;
-        Ok(res)
+
+        Ok(())
+    }
+
+    pub fn validate(&self) -> Result<(), ExpiryRangeError> {
+        if self.min > self.max {
+            return Err(ExpiryRangeError::InvalidExpiry {});
+        }
+
+        Ok(())
     }
 }
+
