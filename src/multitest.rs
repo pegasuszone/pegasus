@@ -2,7 +2,7 @@
 use crate::error::ContractError;
 use crate::helpers::ExpiryRange;
 use crate::msg::{
-    AskCountResponse, AskOffset, AskResponse, AsksResponse, BidOffset, BidResponse,
+    AskCountResponse, OfferOffset, AskResponse, AsksResponse, BidOffset, BidResponse,
     CollectionBidOffset, CollectionOffset, CollectionsResponse, ParamsResponse, SudoMsg,
 };
 use crate::msg::{
@@ -794,7 +794,7 @@ fn try_query_sorted_asks() {
     assert_eq!(res.asks[1].price.u128(), 110u128);
     assert_eq!(res.asks[2].price.u128(), 111u128);
 
-    let start_after = AskOffset::new(res.asks[0].price, res.asks[0].token_id);
+    let start_after = OfferOffset::new(res.asks[0].price, res.asks[0].token_id);
     let query_msg = QueryMsg::AsksSortedByPrice {
         collection: collection.to_string(),
         include_inactive: Some(true),
@@ -826,7 +826,7 @@ fn try_query_sorted_asks() {
     assert_eq!(res.asks[1].price.u128(), 110u128);
     assert_eq!(res.asks[2].price.u128(), 109u128);
 
-    let start_before = AskOffset::new(res.asks[0].price, res.asks[0].token_id);
+    let start_before = OfferOffset::new(res.asks[0].price, res.asks[0].token_id);
     let reverse_query_asks_start_before_first_desc_msg = QueryMsg::ReverseAsksSortedByPrice {
         collection: collection.to_string(),
         include_inactive: Some(true),

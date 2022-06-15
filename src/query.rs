@@ -1,12 +1,15 @@
 use crate::msg::{
-    AskCountResponse, AskOffset, AskResponse, AsksResponse, BidOffset, BidResponse, Bidder,
+    AskCountResponse, OfferOffset, AskResponse, AsksResponse, BidOffset, BidResponse, Offeror,
     BidsResponse, Collection, CollectionBidOffset, CollectionBidResponse, CollectionBidsResponse,
     CollectionOffset, CollectionsResponse, ParamsResponse, QueryMsg,
 };
 use crate::state::{
-    ask_key, asks, bid_key, bids, collection_bid_key, collection_bids, BidKey, CollectionBidKey,
-    TokenId, ASK_HOOKS, BID_HOOKS, SALE_HOOKS, SUDO_PARAMS,
+    offer_key, Offer, OfferKey, OFFER_HOOKS, SUDO_PARAMS
 };
+// use crate::state::{
+//     ask_key, asks, bid_key, bids, collection_bid_key, collection_bids, BidKey, CollectionBidKey,
+//     TokenId, ASK_HOOKS, BID_HOOKS, SALE_HOOKS, SUDO_PARAMS,
+// };
 use cosmwasm_std::{entry_point, to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::{Bound, PrefixBound};
 use cw_utils::maybe_addr;
@@ -254,7 +257,7 @@ pub fn query_asks_sorted_by_price(
     deps: Deps,
     collection: Addr,
     include_inactive: Option<bool>,
-    start_after: Option<AskOffset>,
+    start_after: Option<OfferOffset>,
     limit: Option<u32>,
 ) -> StdResult<AsksResponse> {
     let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
@@ -286,7 +289,7 @@ pub fn reverse_query_asks_sorted_by_price(
     deps: Deps,
     collection: Addr,
     include_inactive: Option<bool>,
-    start_before: Option<AskOffset>,
+    start_before: Option<OfferOffset>,
     limit: Option<u32>,
 ) -> StdResult<AsksResponse> {
     let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
@@ -412,7 +415,7 @@ pub fn query_bids(
     deps: Deps,
     collection: Addr,
     token_id: TokenId,
-    start_after: Option<Bidder>,
+    start_after: Option<Offeror>,
     limit: Option<u32>,
 ) -> StdResult<BidsResponse> {
     let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;

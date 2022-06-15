@@ -6,7 +6,7 @@ use crate::execute::{execute, instantiate};
 use crate::helpers::ExpiryRange;
 use crate::msg::{ExecuteMsg, InstantiateMsg};
 use crate::query::{query_ask_count, query_asks_by_seller, query_bids_by_bidder};
-use crate::state::{ask_key, asks, bid_key, bids, Ask, Bid, SaleType};
+use crate::state::{ask_key, asks, bid_key, bids, Offer, Bid, SaleType};
 
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{coin, coins, Addr, DepsMut, Timestamp, Uint128};
@@ -30,7 +30,7 @@ fn ask_indexed_map() {
     let collection = Addr::unchecked(COLLECTION);
     let seller = Addr::unchecked("seller");
 
-    let ask = Ask {
+    let ask = Offer {
         sale_type: SaleType::FixedPrice,
         collection: collection.clone(),
         token_id: TOKEN_ID,
@@ -46,7 +46,7 @@ fn ask_indexed_map() {
     let res = asks().save(deps.as_mut().storage, key.clone(), &ask);
     assert!(res.is_ok());
 
-    let ask2 = Ask {
+    let ask2 = Offer {
         sale_type: SaleType::FixedPrice,
         collection: collection.clone(),
         token_id: TOKEN_ID + 1,

@@ -1,7 +1,11 @@
 [package]
 name = "p2p-nft-trade"
 version = "0.1.0"
-authors = ["Maurits Bos <mb.brains@gmail.com>"]
+authors = [
+  "Maurits Bos <mb.brains@gmail.com>",
+  "Shane Vitarana <s@noreply.publicawesome.com>",
+  "Jake Hartnell <jake@publicawesome.com>",
+]
 edition = "2018"
 
 exclude = [

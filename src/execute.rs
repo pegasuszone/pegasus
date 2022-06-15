@@ -5,7 +5,7 @@ use crate::msg::{
     SaleHookMsg,
 };
 use crate::state::{
-    ask_key, asks, bid_key, bids, collection_bid_key, collection_bids, Ask, Bid, CollectionBid,
+    ask_key, asks, bid_key, bids, collection_bid_key, collection_bids, Offer, Bid, CollectionBid,
     Order, SaleType, SudoParams, TokenId, ASK_HOOKS, BID_HOOKS, COLLECTION_BID_HOOKS, SALE_HOOKS,
     SUDO_PARAMS,
 };
@@ -253,7 +253,7 @@ pub fn execute_set_ask(
     }
 
     let seller = info.sender;
-    let ask = Ask {
+    let ask = Offer {
         sale_type,
         collection: collection.clone(),
         token_id,
@@ -500,7 +500,7 @@ pub fn execute_accept_bid(
         existing_ask
     } else {
         // Create a temporary Ask
-        Ask {
+        Offer {
             sale_type: SaleType::Auction,
             collection: collection.clone(),
             token_id,
@@ -656,7 +656,7 @@ pub fn execute_accept_collection_bid(
         existing_ask
     } else {
         // Create a temporary Ask
-        Ask {
+        Offer {
             sale_type: SaleType::Auction,
             collection: collection.clone(),
             token_id,
@@ -830,7 +830,7 @@ pub fn execute_remove_stale_collection_bid(
 /// Transfers funds and NFT, updates bid
 fn finalize_sale(
     deps: Deps,
-    ask: Ask,
+    ask: Offer,
     price: Uint128,
     buyer: Addr,
     finder: Option<Addr>,
@@ -970,7 +970,7 @@ fn store_bid(store: &mut dyn Storage, bid: &Bid) -> StdResult<()> {
     )
 }
 
-fn store_ask(store: &mut dyn Storage, ask: &Ask) -> StdResult<()> {
+fn store_ask(store: &mut dyn Storage, ask: &Offer) -> StdResult<()> {
     asks().save(store, ask_key(&ask.collection, ask.token_id), ask)
 }
 
@@ -1053,7 +1053,7 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, Contract
     }
 }
 
-fn prepare_ask_hook(deps: Deps, ask: &Ask, action: HookAction) -> StdResult<Vec<SubMsg>> {
+fn prepare_ask_hook(deps: Deps, ask: &Offer, action: HookAction) -> StdResult<Vec<SubMsg>> {
     let submsgs = ASK_HOOKS.prepare_hooks(deps.storage, |h| {
         let msg = AskHookMsg { ask: ask.clone() };
         let execute = WasmMsg::Execute {
@@ -1067,7 +1067,7 @@ fn prepare_ask_hook(deps: Deps, ask: &Ask, action: HookAction) -> StdResult<Vec<
     Ok(submsgs)
 }
 
-fn prepare_sale_hook(deps: Deps, ask: &Ask, buyer: Addr) -> StdResult<Vec<SubMsg>> {
+fn prepare_sale_hook(deps: Deps, ask: &Offer, buyer: Addr) -> StdResult<Vec<SubMsg>> {
     let submsgs = SALE_HOOKS.prepare_hooks(deps.storage, |h| {
         let msg = SaleHookMsg {
             collection: ask.collection.to_string(),
