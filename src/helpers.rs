@@ -1,16 +1,15 @@
+use crate::msg::ExecuteMsg;
+use cosmwasm_std::{to_binary, Addr, Api, BlockInfo, StdError, StdResult, Timestamp, WasmMsg};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::{to_binary, Addr, Api, BlockInfo, StdError, StdResult, Timestamp, WasmMsg, CustomQuery, Querier, QuerierWrapper, WasmQuery};
 use sg_std::CosmosMsg;
 use thiserror::Error;
 
-use crate::msg::ExecuteMsg;
-
 /// MarketplaceContract is a wrapper around Addr that provides a lot of helpers
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct P2pMarketplaceContract(pub Addr);
+pub struct MarketplaceContract(pub Addr);
 
-impl P2pMarketplaceContract {
+impl MarketplaceContract {
     pub fn addr(&self) -> Addr {
         self.0.clone()
     }
@@ -74,4 +73,3 @@ impl ExpiryRange {
         Ok(())
     }
 }
-

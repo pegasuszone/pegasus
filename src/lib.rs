@@ -1,8 +1,14 @@
-pub mod contract;
 mod error;
-pub mod helpers;
-pub mod integration_tests;
+pub mod execute;
+mod helpers;
 pub mod msg;
+#[cfg(test)]
+mod multitest;
+pub mod query;
 pub mod state;
+pub mod sudo;
+#[cfg(test)]
+mod unit_tests;
 
-pub use crate::error::ContractError;
+pub use error::ContractError;
+pub use helpers::{ExpiryRange, ExpiryRangeError, MarketplaceContract};
