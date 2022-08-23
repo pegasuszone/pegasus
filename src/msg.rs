@@ -9,49 +9,27 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    /// Fair Burn fee for winning bids
-    /// 0.25% = 25, 0.5% = 50, 1% = 100, 2.5% = 250
-    // pub trading_fee_bps: u64,
 
     pub escrow_deposit_amount: Uint128,
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
 
-    // /// Valid time range for Bids
-    // /// (min, max) in seconds
-    // pub bid_expiry: ExpiryRange,
     /// Operators are entites that are responsible for maintaining the active state of Offers.
     /// They listen to NFT transfer events, and update the active state of Offers.
     pub operators: Vec<String>,
 
     /// Max basis points for the finders fee
     pub max_finders_fee_bps: u64,
-    /// Min value for bids and Offers
-    pub min_price: Uint128,
     /// Duration after expiry when a bid becomes stale (in seconds)
     pub stale_offer_duration: Duration,
     /// Stale bid removal reward
     pub offer_removal_reward_bps: u64,
-
-
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-    /// List an NFT on the marketplace by creating a new Offer
-    // SetOffer {
-    //     sale_type: SaleType,
-    //     collection: String,
-    //     token_id: TokenId,
-    //     price: Coin,
-    //     funds_recipient: Option<String>,
-    //     reserve_for: Option<String>,
-    //     finders_fee_bps: Option<u64>,
-    //     expires: Timestamp,
-    // },
-
+pub enum ExecuteMsg {     
     SetOffer {
         collection_offered: Addr,
         token_id_offered: TokenId,
@@ -135,7 +113,12 @@ impl OfferOffset {
 pub enum QueryMsg {
     /// List of collections that have Offers on them
     /// Return type: `CollectionsResponse`
-    Collections {
+    // Not sure if we need these Collections queries
+    CollectionsWanted {
+        start_after: Option<Collection>,
+        limit: Option<u32>,
+    },
+    CollectionsOffered {
         start_after: Option<Collection>,
         limit: Option<u32>,
     },
@@ -149,30 +132,16 @@ pub enum QueryMsg {
     /// Return type: `OffersResponse`
     Offers {
         offeror: Offeror,
+        start_after: Option<Offeror>,
+        limit: Option<u32>,
+    },
+
+    Requests {
+        peer: Peer,
+        start_after: Option<Peer>,
+        limit: Option<u32>,
     },
     
-    /// Get all Offers for a collection, sorted by price
-    /// Return type: `OffersResponse`
-    OffersSortedByCollectionPrice {
-        offeror: Offeror,
-        collection: Collection,
-        include_inactive: Option<bool>,
-        start_after: Option<OfferOffset>,
-        limit: Option<u32>,
-    },
-    /// Get all Offers for a collection, sorted by price in reverse
-    /// Return type: `OffersResponse`
-    ReverseOffersSortedByPrice {
-        offeror: Offeror,
-        collection: Collection,
-        include_inactive: Option<bool>,
-        start_after: Option<OfferOffset>,
-        limit: Option<u32>,
-    },
-    /// Count of all Offers
-    /// Return type: `OfferCountResponse`
-    OffersCount { collection: Collection },
-
     /// Return type: `HooksResponse`
     OfferHooks {},
 
@@ -183,12 +152,17 @@ pub enum QueryMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct OfferResponse {
-    pub Offer: Option<Offer>,
+    pub offer: Option<Offer>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct OffersResponse {
-    pub Offers: Vec<Offer>,
+    pub offers: Vec<Offer>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct RequestsResponse {
+    pub requests: Vec<Offer>
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -197,54 +171,28 @@ pub struct OfferCountResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct CollectionsResponse {
-    pub collections: Vec<Addr>,
+pub struct TokenIDWantedResponse {
+    pub offer: Option<Addr>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct TokenIDOfferedResponse {
+    pub offer: Option<Addr>,
+}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ParamsResponse {
     pub params: SudoParams,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub struct SaleHookMsg {
-    pub collection: String,
-    pub token_id: u32,
-    pub price: Coin,
-    pub seller: String,
-    pub buyer: String,
+// not sure if we need these query responses
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct CollectionsWantedResponse {
+    pub collections: Vec<Addr>,
 }
 
-impl SaleHookMsg {
-    pub fn new(
-        collection: String,
-        token_id: u32,
-        price: Coin,
-        seller: String,
-        buyer: String,
-    ) -> Self {
-        SaleHookMsg {
-            collection,
-            token_id,
-            price,
-            seller,
-            buyer,
-        }
-    }
-
-    /// serializes the message
-    pub fn into_binary(self) -> StdResult<Binary> {
-        let msg = SaleExecuteMsg::SaleHook(self);
-        to_binary(&msg)
-    }
-}
-
-// This is just a helper to properly serialize the above message
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum SaleExecuteMsg {
-    SaleHook(SaleHookMsg),
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct CollectionsOfferedResponse {
+    pub collections: Vec<Addr>,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
@@ -258,12 +206,12 @@ pub enum HookAction {
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 #[serde(rename_all = "snake_case")]
 pub struct OfferHookMsg {
-    pub Offer: Offer,
+    pub offer: Offer,
 }
 
 impl OfferHookMsg {
-    pub fn new(Offer: Offer) -> Self {
-        OfferHookMsg { Offer }
+    pub fn new(offer: Offer) -> Self {
+        OfferHookMsg { offer }
     }
 
     /// serializes the message
@@ -286,64 +234,3 @@ pub enum OfferHookExecuteMsg {
     OfferDeletedHook(OfferHookMsg),
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub struct BidHookMsg {
-    pub bid: Bid,
-}
-
-impl BidHookMsg {
-    pub fn new(bid: Bid) -> Self {
-        BidHookMsg { bid }
-    }
-
-    /// serializes the message
-    pub fn into_binary(self, action: HookAction) -> StdResult<Binary> {
-        let msg = match action {
-            HookAction::Create => BidExecuteMsg::BidCreatedHook(self),
-            HookAction::Update => BidExecuteMsg::BidUpdatedHook(self),
-            HookAction::Delete => BidExecuteMsg::BidDeletedHook(self),
-        };
-        to_binary(&msg)
-    }
-}
-
-// This is just a helper to properly serialize the above message
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum BidExecuteMsg {
-    BidCreatedHook(BidHookMsg),
-    BidUpdatedHook(BidHookMsg),
-    BidDeletedHook(BidHookMsg),
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub struct CollectionBidHookMsg {
-    pub collection_bid: CollectionBid,
-}
-
-impl CollectionBidHookMsg {
-    pub fn new(collection_bid: CollectionBid) -> Self {
-        CollectionBidHookMsg { collection_bid }
-    }
-
-    /// serializes the message
-    pub fn into_binary(self, action: HookAction) -> StdResult<Binary> {
-        let msg = match action {
-            HookAction::Create => CollectionBidExecuteMsg::CollectionBidCreatedHook(self),
-            HookAction::Update => CollectionBidExecuteMsg::CollectionBidUpdatedHook(self),
-            HookAction::Delete => CollectionBidExecuteMsg::CollectionBidDeletedHook(self),
-        };
-        to_binary(&msg)
-    }
-}
-
-// This is just a helper to properly serialize the above message
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum CollectionBidExecuteMsg {
-    CollectionBidCreatedHook(CollectionBidHookMsg),
-    CollectionBidUpdatedHook(CollectionBidHookMsg),
-    CollectionBidDeletedHook(CollectionBidHookMsg),
-}

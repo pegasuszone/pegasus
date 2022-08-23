@@ -13,7 +13,7 @@ pub struct SudoParams {
     pub escrow_deposit_amount: Uint128,
     /// Valid time range for Asks
     /// (min, max) in seconds
-    pub ask_expiry: ExpiryRange,
+    pub offer_expiry: ExpiryRange,
     /// Operators are entites that are responsible for maintaining the active state of Asks
     /// They listen to NFT transfer events, and update the active state of Asks
     pub operators: Vec<Addr>,
@@ -82,207 +82,40 @@ pub fn offer_key(collection: &Addr, token_id: TokenId, owner: Addr) -> OfferKey 
 }
 
 /// Defines indices for accessing Asks
-pub struct AskIndicies<'a> {
-    pub collection: MultiIndex<'a, Addr, Offer, OfferKey>,
-    pub collection_price: MultiIndex<'a, (Addr, u128), Offer, OfferKey>,
-    pub seller: MultiIndex<'a, Addr, Offer, OfferKey>,
+pub struct OfferIndicies<'a> {
+    pub offeror: MultiIndex<'a, Addr, Offer, OfferKey>,
+    pub collection_wanted: MultiIndex<'a, Addr, Offer, OfferKey>,
+    pub collection_offered: MultiIndex<'a, Addr, Offer, OfferKey>,
+    pub collection_token_id_wanted: MultiIndex<'a, (Addr, TokenId), Offer, OfferKey>,
+    pub collection_token_id_offered: MultiIndex<'a, (Addr, TokenId), Offer, OfferKey>,
+    pub peer: MultiIndex<'a, Addr, Offer, OfferKey>,
 }
 
-impl<'a> IndexList<Offer> for AskIndicies<'a> {
+
+impl<'a> IndexList<Offer> for OfferIndicies<'a> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Offer>> + '_> {
-        let v: Vec<&dyn Index<Offer>> = vec![&self.collection, &self.collection_price, &self.seller];
+        let v: Vec<&dyn Index<Offer>> = vec![
+            &self.offeror, 
+            &self.collection_wanted, 
+            &self.collection_offered,
+            &self.collection_token_id_wanted,
+            &self.collection_token_id_offered, 
+            &self.peer
+        ];
         Box::new(v.into_iter())
     }
 }
 
 // TODO: Implement this properly
 // what do we want this to do
-// pub fn asks<'a>(offeror: Addr) -> IndexedMap<'a, OfferKey, Offer, AskIndicies<'a>> {
-//     let indexes = AskIndicies {
-//         collection: MultiIndex::new(|d: &Offer| d.collection_offered.clone(), "asks", "asks__collection"),
-//         collection_price: MultiIndex::new(
-//             |d: &Offer| (d.collection_offered.clone(), d.price.u128()),
-//             "asks",
-//             "asks__collection_price",
-//         ),
-//         seller: MultiIndex::new(|d: &Offer| d.seller.clone(), "asks", "asks__seller"),
-//     };
-//     IndexedMap::new("asks", indexes)
-// }
-
-// // not sure if this is neccesary, if there is a asks per user function
-// pub fn asks<'a>() -> IndexedMap<'a, OfferKey, Offer, AskIndicies<'a>> {
-//     let indexes = AskIndicies {
-//         collection: MultiIndex::new(|d: &Offer| d.collection_offered.clone(), "asks", "asks__collection"),
-//         collection_price: MultiIndex::new(
-//             |d: &Offer| (d.collection_offered.clone(), d.price.u128()),
-//             "asks",
-//             "asks__collection_price",
-//         ),
-//         seller: MultiIndex::new(|d: &Offer| d.seller.clone(), "asks", "asks__seller"),
-//     };
-//     IndexedMap::new("asks", indexes)
-// }
-
-/// Represents a bid (offer) on the marketplace
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Bid {
-    pub collection: Addr,
-    pub token_id: TokenId,
-    pub bidder: Addr,
-    pub price: Uint128,
-    pub finders_fee_bps: Option<u64>,
-    pub expires_at: Timestamp,
+pub fn offers<'a>() -> IndexedMap<'a, OfferKey, Offer, OfferIndicies<'a>> {
+    let indexes = OfferIndicies {
+        offeror: MultiIndex::new(|d: &Offer| d.offeror.clone(), "offers", "offers_offerors"),
+        collection_wanted: MultiIndex::new(|d: &Offer| d.collection_wanted.clone(),"offers", "collection_wanted"),
+        collection_offered: MultiIndex::new(|d: &Offer| d.collection_offered.clone(),"offers", "collection_offered"),
+        collection_token_id_wanted: MultiIndex::new(|d: &Offer| (d.collection_wanted, d.token_id_wanted), "offers", "tokens_wanted"),
+        collection_token_id_offered: MultiIndex::new(|d: &Offer| (d.collection_offered, d.token_id_offered), "offers", "tokens_wanted"),
+        peer: MultiIndex::new(|d: &Offer| d.peer.clone(), "Offers", "peers")
+    };
+    IndexedMap::new("offers", indexes)
 }
-
-impl Bid {
-    pub fn new(
-        collection: Addr,
-        token_id: TokenId,
-        bidder: Addr,
-        price: Uint128,
-        finders_fee_bps: Option<u64>,
-        expires: Timestamp,
-    ) -> Self {
-        Bid {
-            collection,
-            token_id,
-            bidder,
-            price,
-            finders_fee_bps,
-            expires_at: expires,
-        }
-    }
-}
-
-impl Order for Bid {
-    fn expires_at(&self) -> Timestamp {
-        self.expires_at
-    }
-}
-
-
-// // This is all stuf for bids, not sure if it is its useful for p2p
-// /// Primary key for bids: (collection, token_id, bidder)
-// pub type BidKey = (Addr, TokenId, Addr);
-// /// Convenience bid key constructor
-// pub fn bid_key(collection: &Addr, token_id: TokenId, bidder: &Addr) -> BidKey {
-//     (collection.clone(), token_id, bidder.clone())
-// }
-
-// /// Defines incides for accessing bids
-// pub struct BidIndicies<'a> {
-//     pub collection: MultiIndex<'a, Addr, Bid, BidKey>,
-//     pub collection_token_id: MultiIndex<'a, (Addr, TokenId), Bid, BidKey>,
-//     pub collection_price: MultiIndex<'a, (Addr, u128), Bid, BidKey>,
-//     pub bidder: MultiIndex<'a, Addr, Bid, BidKey>,
-//     // Cannot include `Timestamp` in index, converted `Timestamp` to `seconds` and stored as `u64`
-//     pub bidder_expires_at: MultiIndex<'a, (Addr, u64), Bid, BidKey>,
-// }
-
-// impl<'a> IndexList<Bid> for BidIndicies<'a> {
-//     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Bid>> + '_> {
-//         let v: Vec<&dyn Index<Bid>> = vec![
-//             &self.collection,
-//             &self.collection_token_id,
-//             &self.collection_price,
-//             &self.bidder,
-//             &self.bidder_expires_at,
-//         ];
-//         Box::new(v.into_iter())
-//     }
-// }
-
-// pub fn bids<'a>() -> IndexedMap<'a, BidKey, Bid, BidIndicies<'a>> {
-//     let indexes = BidIndicies {
-//         collection: MultiIndex::new(|d: &Bid| d.collection.clone(), "bids", "bids__collection"),
-//         collection_token_id: MultiIndex::new(
-//             |d: &Bid| (d.collection.clone(), d.token_id),
-//             "bids",
-//             "bids__collection_token_id",
-//         ),
-//         collection_price: MultiIndex::new(
-//             |d: &Bid| (d.collection.clone(), d.price.u128()),
-//             "bids",
-//             "bids__collection_price",
-//         ),
-//         bidder: MultiIndex::new(|d: &Bid| d.bidder.clone(), "bids", "bids__bidder"),
-//         bidder_expires_at: MultiIndex::new(
-//             |d: &Bid| (d.bidder.clone(), d.expires_at.seconds()),
-//             "bids",
-//             "bids__bidder_expires_at",
-//         ),
-//     };
-//     IndexedMap::new("bids", indexes)
-// }
-
-// /// Represents a bid (offer) across an entire collection in the marketplace
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct CollectionBid {
-//     pub collection: Addr,
-//     pub bidder: Addr,
-//     pub price: Uint128,
-//     pub finders_fee_bps: Option<u64>,
-//     pub expires_at: Timestamp,
-// }
-
-// impl Order for CollectionBid {
-//     fn expires_at(&self) -> Timestamp {
-//         self.expires_at
-//     }
-// }
-
-// /// Primary key for bids: (collection, token_id, bidder)
-// pub type CollectionBidKey = (Addr, Addr);
-// /// Convenience collection bid key constructor
-// pub fn collection_bid_key(collection: &Addr, bidder: &Addr) -> CollectionBidKey {
-//     (collection.clone(), bidder.clone())
-// }
-
-// /// Defines incides for accessing collection bids
-// pub struct CollectionBidIndicies<'a> {
-//     pub collection: MultiIndex<'a, Addr, CollectionBid, CollectionBidKey>,
-//     pub collection_price: MultiIndex<'a, (Addr, u128), CollectionBid, CollectionBidKey>,
-//     pub bidder: MultiIndex<'a, Addr, CollectionBid, CollectionBidKey>,
-//     // Cannot include `Timestamp` in index, converted `Timestamp` to `seconds` and stored as `u64`
-//     pub bidder_expires_at: MultiIndex<'a, (Addr, u64), CollectionBid, CollectionBidKey>,
-// }
-
-// impl<'a> IndexList<CollectionBid> for CollectionBidIndicies<'a> {
-//     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<CollectionBid>> + '_> {
-//         let v: Vec<&dyn Index<CollectionBid>> = vec![
-//             &self.collection,
-//             &self.collection_price,
-//             &self.bidder,
-//             &self.bidder_expires_at,
-//         ];
-//         Box::new(v.into_iter())
-//     }
-// }
-
-// pub fn collection_bids<'a>(
-// ) -> IndexedMap<'a, CollectionBidKey, CollectionBid, CollectionBidIndicies<'a>> {
-//     let indexes = CollectionBidIndicies {
-//         collection: MultiIndex::new(
-//             |d: &CollectionBid| d.collection.clone(),
-//             "col_bids",
-//             "col_bids__collection",
-//         ),
-//         collection_price: MultiIndex::new(
-//             |d: &CollectionBid| (d.collection.clone(), d.price.u128()),
-//             "col_bids",
-//             "col_bids__collection_price",
-//         ),
-//         bidder: MultiIndex::new(
-//             |d: &CollectionBid| d.bidder.clone(),
-//             "col_bids",
-//             "col_bids__bidder",
-//         ),
-//         bidder_expires_at: MultiIndex::new(
-//             |d: &CollectionBid| (d.bidder.clone(), d.expires_at.seconds()),
-//             "col_bids",
-//             "col_bids__bidder_expires_at",
-//         ),
-//     };
-//     IndexedMap::new("col_bids", indexes)
-// }
