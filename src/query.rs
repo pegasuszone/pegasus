@@ -1,16 +1,11 @@
-use crate::msg::{
-    OfferCountResponse, OfferOffset, QueryMsg, OffersResponse,
-};
-use crate::state::{
-    offer_key, Offer, OfferKey, OFFER_HOOKS, SUDO_PARAMS, TokenId, offers
-};
+use crate::msg::{OfferOffset, OffersResponse, QueryMsg};
+use crate::state::{offer_key, offers, TokenId};
 // use crate::state::{
 //     ask_key, asks, bid_key, bids, collection_bid_key, collection_bids, BidKey, CollectionBidKey,
 //     TokenId, ASK_HOOKS, BID_HOOKS, SALE_HOOKS, SUDO_PARAMS,
 // };
-use cosmwasm_std::{entry_point, to_binary, Addr, Binary, Deps, Env, Order, StdResult};
-use cw_storage_plus::{Bound, PrefixBound};
-use cw_utils::maybe_addr;
+use cosmwasm_std::{entry_point, Addr, Binary, Deps, Env, Order, StdResult};
+use cw_storage_plus::Bound;
 
 // Query limits
 const DEFAULT_QUERY_LIMIT: u32 = 10;
@@ -21,14 +16,25 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     let api = deps.api;
 
     match msg {
-    QueryMsg::CollectionsWanted { start_after, limit } => todo!(),
-    QueryMsg::CollectionsOffered { start_after, limit } => todo!(),
-    QueryMsg::Offer { collection, token_id } => todo!(),
-    QueryMsg::Offers { offeror, start_after, limit } => todo!(),
-    QueryMsg::Requests { peer, start_after, limit } => todo!(),
-    QueryMsg::OfferHooks {  } => todo!(),
-    QueryMsg::Params {  } => todo!(),
-}
+        QueryMsg::CollectionsWanted { start_after, limit } => todo!(),
+        QueryMsg::CollectionsOffered { start_after, limit } => todo!(),
+        QueryMsg::Offer {
+            collection,
+            token_id,
+        } => todo!(),
+        QueryMsg::Offers {
+            offeror,
+            start_after,
+            limit,
+        } => todo!(),
+        QueryMsg::Requests {
+            peer,
+            start_after,
+            limit,
+        } => todo!(),
+        QueryMsg::OfferHooks {} => todo!(),
+        QueryMsg::Params {} => todo!(),
+    }
 }
 
 pub fn query_offers(
@@ -45,10 +51,7 @@ pub fn query_offers(
         .prefix(offeror.clone())
         .range(
             deps.storage,
-            Some(Bound::exclusive((
-                offeror,
-                start_after.unwrap_or_default(),
-            ))),
+            Some(Bound::exclusive((offeror, start_after.unwrap_or_default()))),
             None,
             Order::Ascending,
         )
@@ -77,7 +80,10 @@ pub fn query_asks_sorted_by_price(
     let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
 
     let start = start_after.map(|offset| {
-        Bound::exclusive((offset.price.u128(), offer_key(&collection, offset.token_id, owner)))
+        Bound::exclusive((
+            offset.price.u128(),
+            offer_key(&collection, offset.token_id, owner),
+        ))
     });
 
     let asks = offers()
