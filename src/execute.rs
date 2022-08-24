@@ -32,25 +32,6 @@ pub fn instantiate(
     Ok(Response::new())
 }
 
-pub struct AskInfo {
-    sale_type: SaleType,
-    collection: Addr,
-    token_id: TokenId,
-    price: Coin,
-    funds_recipient: Option<Addr>,
-    reserve_for: Option<Addr>,
-    finders_fee_bps: Option<u64>,
-    expires: Timestamp,
-}
-
-pub struct BidInfo {
-    collection: Addr,
-    token_id: TokenId,
-    expires: Timestamp,
-    finder: Option<Addr>,
-    finders_fee_bps: Option<u64>,
-}
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
@@ -62,3 +43,6 @@ pub fn execute(
 
     match msg {}
 }
+
+
+fn finalize_trade(deps: Deps, offered: Vec<Token>)
