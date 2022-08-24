@@ -2,7 +2,7 @@ use crate::{
     helpers::ExpiryRange,
     state::{Offer, SudoParams, Token},
 };
-use cosmwasm_std::{Addr, Timestamp, Uint128};
+use cosmwasm_std::{Addr, Timestamp, Uint128, Api, StdError};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -18,10 +18,16 @@ pub struct InstantiateMsg {
     pub offer_expiry: ExpiryRange,
 
     /// Developer address
-    pub maintainer: Addr,
+    pub maintainer: String,
 
     /// Stale trade removal reward
     pub removal_reward_bps: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct TokenMsg {
+    pub collection: String,
+    pub token: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -29,9 +35,9 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     /// Create a new offer
     CreateOffer {
-        offered_nfts: Vec<Token>,
-        wanted_nfts: Vec<Token>,
-        peer: Addr,
+        offered_nfts: Vec<TokenMsg>,
+        wanted_nfts: Vec<TokenMsg>,
+        peer: String,
         expires_at: Timestamp,
     },
     /// Remove an offer (called by sender)
@@ -52,7 +58,7 @@ pub enum SudoMsg {
     UpdateParams {
         escrow_deposit_amount: Option<Uint128>,
         offer_expiry: Option<ExpiryRange>,
-        maintainer: Option<Addr>,
+        maintainer: Option<String>,
         removal_reward_bps: Option<u64>,
     },
 }
@@ -61,8 +67,8 @@ pub enum SudoMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Offer { id: u8 },
-    OffersBySender { sender: Addr },
-    OffersByPeer { peer: Addr },
+    OffersBySender { sender: String },
+    OffersByPeer { peer: String },
     Params {},
 }
 
