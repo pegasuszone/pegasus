@@ -1,8 +1,8 @@
 use crate::{
     helpers::ExpiryRange,
-    state::{Offer, SudoParams, Token},
+    state::{Offer, SudoParams},
 };
-use cosmwasm_std::{Addr, Timestamp, Uint128, Api, StdError};
+use cosmwasm_std::{Timestamp, Uint128 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +27,7 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TokenMsg {
     pub collection: String,
-    pub token: u32,
+    pub token_id: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -45,7 +45,7 @@ pub enum ExecuteMsg {
     /// Accept an existing offer (called by peer)
     AcceptOffer { id: u8 },
     /// Reject an existing offer (called by peer)
-    RefuseOffer { id: u8 },
+    RejectOffer { id: u8 },
     /// Operation to remove stale offers (called by anyone & incentivized)
     RemoveStaleOffer { id: u8 },
 }
@@ -67,8 +67,8 @@ pub enum SudoMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Offer { id: u8 },
-    OffersBySender { sender: String },
-    OffersByPeer { peer: String },
+    OffersBySender { sender: String, start_after: Option<u32>, limit: Option<u32> },
+    OffersByPeer { peer: String, start_after: Option<u32>, limit: Option<u32> },
     Params {},
 }
 

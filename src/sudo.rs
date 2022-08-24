@@ -1,21 +1,20 @@
 use crate::error::ContractError;
-use crate::helpers::{map_validate, ExpiryRange};
+use crate::helpers::ExpiryRange;
 use crate::msg::SudoMsg;
 use crate::state::SUDO_PARAMS;
-use cosmwasm_std::{entry_point, Addr, Decimal, DepsMut, Env, Uint128};
-use cw_utils::Duration;
+use cosmwasm_std::{entry_point, DepsMut, Env, Uint128};
 use sg_std::Response;
 
 pub struct ParamInfo {
     pub escrow_deposit_amount: Option<Uint128>,
     pub offer_expiry: Option<ExpiryRange>,
-    pub maintainer: Option<Addr>,
-    pub removal_reward_percent: Option<u64>,
+    pub maintainer: Option<String>,
+    pub removal_reward_bps: Option<u64>,
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
-    let api = deps.api;
+    // let api = deps.api;
 
     match msg {
         SudoMsg::UpdateParams {
@@ -29,8 +28,8 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
             ParamInfo {
                 escrow_deposit_amount,
                 offer_expiry,
-                maintainer,
                 removal_reward_bps,
+                maintainer,
             },
         ),
     }
@@ -58,12 +57,13 @@ pub fn sudo_update_params(
     }
 
     if let Some(maintainer) = maintainer {
-        params.maintainer = maintainer;
+        params.maintainer = deps.api.addr_validate(&maintainer)?;
     }
-
-    params.removal_reward_bps = bid_removal_reward_bps
-        .map(Decimal::percent)
-        .unwrap_or(params.bid_removal_reward_percent);
+    if let Some(removal_reward_bps) = removal_reward_bps {
+        params.removal_reward_bps = removal_reward_bps
+        // .map(Decimal::percent)
+        // .unwrap_or(params.bid_removal_reward_percent);
+    }
 
     SUDO_PARAMS.save(deps.storage, &params)?;
 

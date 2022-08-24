@@ -12,8 +12,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
     match msg {
         QueryMsg::Offer { id } => to_binary(&query_offer(deps, id)?),
-        QueryMsg::OffersBySender { sender } => to_binary(&query_offers_by_sender(deps, sender)?),
-        QueryMsg::OffersByPeer { peer } => to_binary(&query_offers_by_peer(deps, peer)?),
+        QueryMsg::OffersBySender { sender, start_after, limit } => to_binary(&query_offers_by_sender(deps,api.addr_validate(&sender)?)?),
+        QueryMsg::OffersByPeer {peer, start_after, limit } => to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?),
         QueryMsg::Params {} => todo!(),
     }
 }
@@ -23,6 +23,7 @@ pub fn query_offer(deps: Deps, id: u8) -> StdResult<OfferResponse> {
     Ok(OfferResponse { offer })
 }
 
+// TODO: Implement pagination
 pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
@@ -38,6 +39,7 @@ pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersRespo
     Ok(OffersResponse { offers })
 }
 
+// TODO: Implement pagination
 pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx

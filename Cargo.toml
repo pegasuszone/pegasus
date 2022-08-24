@@ -1,5 +1,5 @@
 [package]
-name = "p2p-nft-trade"
+name = "sg-p2p-nft-trade"
 version = "0.1.0"
 authors = [
   "Maurits Bos <mb.brains@gmail.com>",
