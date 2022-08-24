@@ -1,5 +1,5 @@
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, TokenMsg};
 use crate::state::{SudoParams, TokenId, SUDO_PARAMS, Token};
 
 #[cfg(not(feature = "library"))]
@@ -42,7 +42,17 @@ pub fn execute(
     let api = deps.api;
 
     match msg {
-    ExecuteMsg::CreateOffer { offered_nfts, wanted_nfts, peer, expires_at } => todo!(),
+    ExecuteMsg::CreateOffer { 
+        offered_nfts, 
+        wanted_nfts, 
+        peer, 
+        expires_at 
+    } => execute_create_offer(deps, env, 
+        offered_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
+        wanted_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
+        api.addr_validate(&peer)?, 
+        expires_at),
+        
     ExecuteMsg::RemoveOffer { id } => todo!(),
     ExecuteMsg::AcceptOffer { id } => todo!(),
     ExecuteMsg::RefuseOffer { id } => todo!(),
