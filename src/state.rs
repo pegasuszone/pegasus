@@ -1,5 +1,5 @@
-use cosmwasm_std::{Addr, BlockInfo, Decimal, Timestamp, Uint128};
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex};
+use cosmwasm_std::{Addr, Decimal, StdResult, Storage, Timestamp, Uint128};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
 use cw_utils::Duration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use crate::helpers::ExpiryRange;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
     // incentive for users to close stale p2p trade
-    pub escrow_deposit_amount: Uint128,
+    pub Offer_deposit_amount: Uint128,
     /// Valid time range for Asks
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
@@ -24,21 +24,6 @@ pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");
 
 pub type TokenId = u32;
 
-pub trait Order {
-    fn expires_at(&self) -> Timestamp;
-
-    fn is_expired(&self, block: &BlockInfo) -> bool {
-        self.expires_at() <= block.time
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum SaleType {
-    FixedPrice,
-    Auction,
-}
-
 /// Represents a token that can be offered
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Token {
@@ -49,44 +34,44 @@ pub struct Token {
 /// Represents an ask on the marketplace
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Offer {
-    pub offer: Token,
-    pub wanted: Token,
+    /// Unique identifier
+    pub id: u8,
+
+    /// Arrays of offered & wanted NFTs, both defined by the sender
+    pub offered_nfts: Vec<Token>,
+    pub wanted_nfts: Vec<Token>,
+
     pub sender: Addr,
     pub peer: Addr,
-
     pub expires_at: Timestamp,
 }
 
-impl Order for Offer {
-    fn expires_at(&self) -> Timestamp {
-        self.expires_at
-    }
+// Incrementing ID counter
+pub const OFFER_ID_COUNTER: Item<u8> = Item::new("offer_id_counter");
+
+// Get next incrementing ID
+pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u8> {
+    let id: u8 = OFFER_ID_COUNTER.may_load(store)?.unwrap_or_default() + 1;
+    OFFER_ID_COUNTER.save(store, &id)?;
+
+    Ok(id)
 }
 
-/// Primary key for offer: (collection, token_id, Owner)
-pub type OfferKey = (Addr, TokenId, Addr);
-/// Convenience ask key constructor
-pub fn offer_key(collection: &Addr, token_id: TokenId, owner: Addr) -> OfferKey {
-    (collection.clone(), token_id, owner)
+pub const OFFER_NAMESPACE: &str = "offers";
+pub struct OfferIndexes<'a> {
+    pub id: UniqueIndex<'a, u8, Offer>,
 }
-
-/// Defines indices for accessing Asks
-pub struct OfferIndicies<'a> {
-    pub sender: MultiIndex<'a, Addr, Offer, OfferKey>,
-    pub peer: MultiIndex<'a, Addr, Offer, OfferKey>,
-}
-
-impl<'a> IndexList<Offer> for OfferIndicies<'a> {
+impl<'a> IndexList<Offer> for OfferIndexes<'a> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Offer>> + '_> {
-        let v: Vec<&dyn Index<Offer>> = vec![&self.sender, &self.peer];
+        let v: Vec<&dyn Index<Offer>> = vec![&self.id];
         Box::new(v.into_iter())
     }
 }
 
-pub fn offers<'a>() -> IndexedMap<'a, OfferKey, Offer, OfferIndicies<'a>> {
-    let indexes = OfferIndicies {
-        sender: MultiIndex::new(|d: &Offer| d.sender.clone(), "offers", "senders"),
-        peer: MultiIndex::new(|d: &Offer| d.peer.clone(), "offers", "peers"),
+// Function to get all offers and manipulate offer data
+pub fn offers<'a>() -> IndexedMap<'a, &'a [u8], Offer, OfferIndexes<'a>> {
+    let indexes = OfferIndexes {
+        id: UniqueIndex::new(|d| d.id, "offer_id"),
     };
-    IndexedMap::new("offers", indexes)
+    IndexedMap::new(OFFER_NAMESPACE, indexes)
 }
