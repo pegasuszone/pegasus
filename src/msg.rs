@@ -38,7 +38,7 @@ pub enum ExecuteMsg {
         offered_nfts: Vec<TokenMsg>,
         wanted_nfts: Vec<TokenMsg>,
         peer: String,
-        expires_at: Timestamp,
+        expires_at: Option<Timestamp>,
     },
     /// Remove an offer (called by sender)
     RemoveOffer { id: u8 },

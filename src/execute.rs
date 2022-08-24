@@ -65,7 +65,7 @@ pub fn execute(
 }
 
 
-fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_tokens: Vec<Token>, wanted_tokens: Vec<Token>, peer: Addr, expires_at: Timestamp ) -> Result<Response, ContractError> {
+fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_tokens: Vec<Token>, wanted_tokens: Vec<Token>, peer: Addr, expires_at: Option<Timestamp> ) -> Result<Response, ContractError> {
     // check if the sender is the owner of the tokens
     for token in offered_tokens.clone() {
         // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
@@ -77,7 +77,7 @@ fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_toke
             token.token_id.to_string(),
             env.contract.address.to_string(),
             None,
-        )?;
+        ).map_err(|_| ContractError::Unauthorized{ collection: token.collection.to_string(), token_id: token.token_id })?;
 
         // check if the tokens arent already offered in another trade
         let current_sender_offers = query_offers_by_sender(deps.as_ref(), info.sender.clone())?.offers;
@@ -94,9 +94,10 @@ fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_toke
             return Err(ContractError::UnauthorizedPeer { collection: token.collection.to_string(), token_id: token.token_id, peer: peer.into_string() })
         }
     }
-    
+    let params = SUDO_PARAMS.load(deps.storage)?;
     // check if the expiry date is valid
-    SUDO_PARAMS.load(deps.storage)?.offer_expiry.is_valid(&env.block, expires_at)?;
+    let expires = expires_at.unwrap_or( env.block.time.plus_seconds(params.offer_expiry.min + 1));
+    params.offer_expiry.is_valid(&env.block, expires)?;
     
     // create and save offer 
     let offer = Offer { 
@@ -105,7 +106,7 @@ fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_toke
         wanted_nfts: wanted_tokens, 
         sender: info.sender, 
         peer: peer, 
-        expires_at: expires_at, 
+        expires_at: expires, 
     };
     offers().save(deps.storage, &[offer.id], &offer)?;
     
@@ -119,7 +120,7 @@ fn execute_remove_offer(deps:DepsMut,info: MessageInfo, id:u8) -> Result<Respons
     // check if the sender of this msg is the sender of the offer
     let offer = offers().load(deps.as_ref().storage, &[id])?;
     if offer.sender != info.sender {
-        return Err(ContractError::UnauthorizedOperator {  });
+        return Err(ContractError::UnauthorizedSender {  });
     }
 
     offers().remove(deps.storage, &[offer.id])?;
@@ -138,7 +139,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
 
     // check if the sender is the peer of the offer
     if offer.peer != info.sender {
-        return Err(ContractError::UnauthorizedOperator {  })
+        return Err(ContractError::UnauthorizedSender {  })
     }
 
     // check if the offer is not yet expired
@@ -154,7 +155,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
             token.token_id.to_string(),
             env.contract.address.to_string(),
             None,
-        )?;
+        ).map(|_| ContractError::Unauthorized { collection: token.collection.to_string(), token_id: token.token_id  })?;
     }
 
     // check if the offeror owns the offered nfts
@@ -169,7 +170,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
             token.token_id.to_string(),
             env.contract.address.to_string(),
             None,
-        )?;
+        ).map(|_| ContractError::UnauthorizedOperator {  })?;
     }
     let mut res = Response::new();
     
@@ -246,7 +247,7 @@ fn only_owner(
     let res =
         Cw721Contract(collection.clone()).owner_of(&deps.querier, token_id.to_string(), false)?;
     if res.owner != info.sender {
-        return Err(ContractError::UnauthorizedOwner {});
+        return Err(ContractError::UnauthorizedSender {});
     }
 
     Ok(res)

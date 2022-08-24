@@ -9,20 +9,17 @@ pub enum ContractError {
     Std(#[from] StdError),
 
     #[error("UnauthorizedOwner")]
-    UnauthorizedOwner {},
-    #[error("Token (collection: {collection:?}, id: {token_id:?}) is already offered in offer {offer_id:?}" )]
-    TokenAlreadyOffered {
-        collection: String,
-        token_id: u32,
-        offer_id: u8,
-    },
 
-    #[error("Peer {peer:?} is not owner of Token (collection: {collection:?}, id: {token_id:?})")]
-    UnauthorizedPeer {
-        collection: String,
-        token_id: u32,
-        peer: String,
-    },
+    UnauthorizedSender {},
+
+    #[error("Contract is not authorized to spend token(collection: {collection:?}, token_id: {token_id:?}) ")]
+    Unauthorized{collection: String, token_id: u32},
+    
+    #[error("Token (collection: {collection:?}, id: {token_id:?}) is already offered in offer {offer_id:?}" )]
+    TokenAlreadyOffered {collection: String, token_id: u32, offer_id:u8},
+    
+    #[error("address {peer:?} is not owner of Token (collection: {collection:?}, id: {token_id:?})" )]
+    UnauthorizedPeer {collection: String, token_id: u32, peer: String},
 
     #[error("UnauthorizedOperator")]
     UnauthorizedOperator {},
