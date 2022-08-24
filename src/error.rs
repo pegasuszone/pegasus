@@ -1,6 +1,4 @@
-use cosmwasm_std::{StdError, Uint128};
-use cw_utils::PaymentError;
-use sg_controllers::HookError;
+use cosmwasm_std::StdError;
 use thiserror::Error;
 
 use crate::helpers::ExpiryRangeError;
@@ -22,38 +20,8 @@ pub enum ContractError {
     #[error("UnauthorizedOperator")]
     UnauthorizedOperator {},
 
-    #[error("InvalidPrice")]
-    InvalidPrice {},
-
-    #[error("AskExpired")]
-    AskExpired {},
-
-    #[error("AskNotActive")]
-    AskNotActive {},
-
-    #[error("AskUnchanged")]
-    AskUnchanged {},
-
-    #[error("BidExpired")]
-    BidExpired {},
-
-    #[error("BidNotStale")]
-    BidNotStale {},
-
-    #[error("PriceTooSmall: {0}")]
-    PriceTooSmall(Uint128),
-
-    #[error("Token reserved")]
-    TokenReserved {},
-
     #[error("Invalid finders fee bps: {0}")]
     InvalidFindersFeeBps(u64),
-
-    #[error("{0}")]
-    BidPaymentError(#[from] PaymentError),
-
-    #[error("{0}")]
-    Hook(#[from] HookError),
 
     #[error("{0}")]
     ExpiryRange(#[from] ExpiryRangeError),
