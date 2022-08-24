@@ -1,6 +1,5 @@
-use cosmwasm_std::{Addr, Decimal, StdResult, Storage, Timestamp, Uint128};
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
-use cw_utils::Duration;
+use cosmwasm_std::{Addr, StdResult, Storage, Timestamp, Uint128};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, UniqueIndex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -8,16 +7,20 @@ use crate::helpers::ExpiryRange;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
-    // incentive for users to close stale p2p trade
-    pub Offer_deposit_amount: Uint128,
-    /// Valid time range for Asks
+    /// Amount in micros to be deposited by the sender of an offer
+    /// This escrow will be refunded when the offer is accepted or denied
+    /// The sender will lose this deposit if they let the offer expire
+    pub escrow_deposit_amount: Uint128,
+
+    /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
 
-    /// Duration after expiry when a bid becomes stale
-    pub stale_offer_duration: Duration,
-    /// Stale bid removal reward
-    pub offer_removal_reward_percent: Decimal,
+    /// Developer address
+    pub maintainer: Addr,
+
+    /// Stale trade removal reward
+    pub removal_reward_bps: u64,
 }
 
 pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");

@@ -3,7 +3,6 @@ use crate::{
     state::{Offer, SudoParams, Token},
 };
 use cosmwasm_std::{Addr, Timestamp, Uint128};
-use cw_utils::Duration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -54,17 +53,9 @@ pub enum SudoMsg {
         escrow_deposit_amount: Option<Uint128>,
         offer_expiry: Option<ExpiryRange>,
         maintainer: Option<Addr>,
-        stale_offer_duration: Option<Duration>,
-        offer_removal_reward_bps: Option<u64>,
+        removal_reward_bps: Option<u64>,
     },
-
-    /// Add a new hook to be informed of all Offers
-    AddOfferHook { hook: String },
 }
-
-pub type Collection = String;
-pub type Offeror = String;
-pub type Peer = String;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
