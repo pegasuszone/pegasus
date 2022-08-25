@@ -1,5 +1,3 @@
-use std::sync::WaitTimeoutResult;
-
 #[cfg(test)]
 
 use crate::error::ContractError;
@@ -9,7 +7,9 @@ use crate::msg::ExecuteMsg;
 use crate::state::offers;
 use crate::{msg::InstantiateMsg, ExpiryRange, execute::instantiate, state::{Offer, Token}};
 
-use cosmwasm_std::{testing::*, DepsMut, Addr, coins, Timestamp, StdError};
+use cosmwasm_std::{testing::*, DepsMut, Addr, coins, Timestamp, StdError, Empty};
+use cw721_base::{Cw721Contract, Extension, InstantiateMsg as Cw721InstantiateMsg, ExecuteMsg as Cw721ExecuteMsg, MintMsg};
+
 
 
 const CREATOR: &str = "creator";
@@ -34,7 +34,7 @@ const MIN_EXPIRY: u64 = 60;
 fn proper_initialization() {
     let mut deps = mock_dependencies();
 
-    setup_contract(deps.as_mut());
+    instantiate_trade_contract(deps.as_mut());
 }
 
 // test remove/reject
@@ -46,7 +46,7 @@ fn remove_offer() {
     let sender = Addr::unchecked(SENDER);
     let peer = Addr::unchecked(PEER);
     
-    setup_contract(deps.as_mut());
+    instantiate_trade_contract(deps.as_mut());
     
     let mock_sender_info = mock_info(SENDER, &[]);
     let mock_peer = mock_info(PEER, &[]);
@@ -83,7 +83,7 @@ fn reject_offer() {
     let sender = Addr::unchecked(SENDER);
     let peer = Addr::unchecked(PEER);
     
-    setup_contract(deps.as_mut());
+    instantiate_trade_contract(deps.as_mut());
     
     let mock_sender_info = mock_info(SENDER, &[]);
     let mock_peer = mock_info(PEER, &[]);
@@ -112,13 +112,12 @@ fn reject_offer() {
 }
 
 
-fn create_offer() {
-    
-}
-
 //---------------------------------------------------------
 // test helpers 
 //---------------------------------------------------------
+fn token_uri(collection: &str, token_id: &str) ->String {
+    "https://www.maurits-bos.me/nfts/".to_string() + collection + token_id
+}
 
 // helper that injects a offer into the database
 fn save_new_offer( deps: DepsMut, sender: &str, peer: &str, offered_nfts: Vec<Token>, wanted_nfts: Vec<Token>) {
@@ -139,7 +138,7 @@ let collection = Addr::unchecked(COLLECTION_A);
 }
 
 // setup contract helper 
-fn setup_contract(deps: DepsMut) {
+fn instantiate_trade_contract(deps: DepsMut) {
     let msg = InstantiateMsg {
         escrow_deposit_amount: cosmwasm_std::Uint128::new(0),
         offer_expiry: ExpiryRange { min: MIN_EXPIRY, max: MAX_EXPIRY },
