@@ -66,7 +66,14 @@ pub fn execute(
 
 
 fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_tokens: Vec<Token>, wanted_tokens: Vec<Token>, peer: Addr, expires_at: Option<Timestamp> ) -> Result<Response, ContractError> {
+    if info.sender == peer {
+        // TODO: This error needs refactor: Dont know how to describe this situation. SelfSend?
+        return Err(ContractError::AlreadyOwned {  });
+    }
+
     // check if the sender is the owner of the tokens
+    // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner. 
+    //          Then you've approved the contract but no offer has been made, which feels a bit unsafe. 
     for token in offered_tokens.clone() {
         // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
         let _ = only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;

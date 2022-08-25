@@ -9,8 +9,10 @@ pub enum ContractError {
     Std(#[from] StdError),
 
     #[error("UnauthorizedOwner")]
-
     UnauthorizedSender {},
+
+    #[error("Cant offer to same address")]
+    AlreadyOwned{},
 
     #[error("Contract is not authorized to spend token(collection: {collection:?}, token_id: {token_id:?}) ")]
     Unauthorized{collection: String, token_id: u32},
