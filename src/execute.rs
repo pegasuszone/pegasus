@@ -162,7 +162,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
             token.token_id.to_string(),
             env.contract.address.to_string(),
             None,
-        ).map(|_| ContractError::Unauthorized { collection: token.collection.to_string(), token_id: token.token_id  })?;
+        ).map_err(|_| ContractError::Unauthorized { collection: token.collection.to_string(), token_id: token.token_id  })?;
     }
 
     // check if the offeror owns the offered nfts
@@ -177,7 +177,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
             token.token_id.to_string(),
             env.contract.address.to_string(),
             None,
-        ).map(|_| ContractError::UnauthorizedOperator {  })?;
+        ).map_err(|_| ContractError::UnauthorizedOperator {  })?;
     }
     let mut res = Response::new();
     

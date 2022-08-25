@@ -1,7 +1,9 @@
 #[cfg(test)]
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{Addr, Timestamp, Uint128, coins, Coin, Empty, Querier};
+use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
+use cw_utils::Expiration;
 use sg721::msg::{InstantiateMsg as Sg721InstantiateMsg, RoyaltyInfoResponse};
 use sg721::state::CollectionInfo;
 
@@ -24,8 +26,8 @@ const TOKEN4_ID: u32 = 456;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 60;
-const MIN_EXPIRY: u64 = 60;
+const MAX_EXPIRY: u64 = 60*10000;
+const MIN_EXPIRY: u64 = 1;
 
 
 fn custom_mock_app() -> StargazeApp {
@@ -65,7 +67,7 @@ fn setup_contracts(
     let p2p_contract_id = router.store_code(contract_p2p_trade());
     let msg = crate::msg::InstantiateMsg {
         escrow_deposit_amount: Uint128::new(0),
-        offer_expiry: crate::ExpiryRange { min: 60, max: 60*10 },
+        offer_expiry: crate::ExpiryRange { min: MIN_EXPIRY, max: MAX_EXPIRY },
         maintainer: CREATOR.to_string(),
         removal_reward_bps: 0,
     };
@@ -200,11 +202,12 @@ fn approve(
     collection: &Addr,
     marketplace: &Addr,
     token_id: u32,
+    expires: Option<Expiration>,
 ) {
     let approve_msg = Cw721ExecuteMsg::<Empty>::Approve {
         spender: marketplace.to_string(),
         token_id: token_id.to_string(),
-        expires: None,
+        expires: expires,
     };
     let res = router.execute_contract(creator.clone(), collection.clone(), &approve_msg, &[]);
     assert!(res.is_ok());
@@ -254,8 +257,8 @@ fn create_offer() {
     );
 
     // Approves contract on the sender side
-    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID);
-    approve(router, &sender, &collection_b, &trade_contract, TOKEN1_ID);
+    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, None);
+    approve(router, &sender, &collection_b, &trade_contract, TOKEN1_ID, None);
     
     let res = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]);
     assert!(res.is_ok(), "Offer should be correct.");
@@ -304,13 +307,14 @@ fn create_offer() {
     );
     
     
-    approve(router, &peer, &collection_a, &trade_contract, TOKEN2_ID);
+    approve(router, &peer, &collection_a, &trade_contract, TOKEN2_ID, None);
 
 }
 
 #[test]
 fn accept_offer() {
     let router = &mut custom_mock_app();
+    setup_block_time(router, 1000);
 
     let (sender, peer, creator) = setup_accounts(router).unwrap();
     let (trade_contract, collection_a, collection_b) = setup_contracts(router, &creator).unwrap();
@@ -330,9 +334,48 @@ fn accept_offer() {
         peer: peer.to_string(), expires_at: None };
 
     // Approves contract on the sender side
-    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID);
+    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, Some(Expiration::AtTime(Timestamp::from_seconds(1900))));
     
     let res = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]);
+    // Offer should now be created properly.
     assert!(res.is_ok(), "Offer should be correct.");
 
+    let exec_accept_msg = ExecuteMsg::AcceptOffer { id: 1 };
+    // test when peer accepts without approval on peer side
+    let err = router.execute_contract(peer.clone(), trade_contract.clone(), &exec_accept_msg, &[]).unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::Unauthorized { collection: collection_a.to_string(), token_id: TOKEN2_ID }
+    );
+
+    // approve on the peer side
+    approve(router, &peer, &collection_a, &trade_contract, TOKEN2_ID, None);
+
+    // // test when peer accepts without approval on sender side
+    // setup_block_time(router, 2000); // approval should be expired by now
+    // let err = router.execute_contract(peer.clone(), trade_contract.clone(), &exec_accept_msg, &[]).unwrap_err();
+    // assert_eq!(
+    //     err.downcast::<ContractError>().unwrap(),
+    //     ContractError::UnauthorizedOperator {  }
+    // );
+
+   // approve again on the sender side 
+    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, None);
+
+    let res = router.execute_contract(peer.clone(), trade_contract, &exec_accept_msg, &[]);
+    assert!(res.is_ok());
+
+    // check if the NFTs are transfered properly
+    let owner_of_1_query_msg = Cw721QueryMsg::OwnerOf { token_id: TOKEN1_ID.to_string(), include_expired: None };
+    let owner_of_2_query_msg = Cw721QueryMsg::OwnerOf { token_id: TOKEN2_ID.to_string(), include_expired: None };
+
+    let res1: OwnerOfResponse = router.wrap().query_wasm_smart(collection_a.clone(), &owner_of_1_query_msg).unwrap();
+    let res2: OwnerOfResponse = router.wrap().query_wasm_smart(collection_a, &owner_of_2_query_msg).unwrap();
+    
+    assert_eq!(res1.owner, peer.to_string());
+    assert_eq!(res2.owner, sender.to_string());
+
+    // test when peer accepts whithout ownership first send
+
+    // test if the contract 
 }
