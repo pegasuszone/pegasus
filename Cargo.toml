@@ -3,8 +3,7 @@ name = "sg-p2p-nft-trade"
 version = "0.1.0"
 authors = [
   "Maurits Bos <mb.brains@gmail.com>",
-  "Shane Vitarana <s@noreply.publicawesome.com>",
-  "Jake Hartnell <jake@publicawesome.com>",
+  "Josef Leventon <josef.leventon@gmail.com>",
 ]
 edition = "2018"
 
