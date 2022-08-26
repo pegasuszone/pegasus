@@ -1,15 +1,15 @@
 pub mod contract;
-pub mod msg;
-pub mod state;
 mod error;
 mod execute;
 mod helpers;
+pub mod msg;
 mod query;
+pub mod state;
 mod sudo;
 
 #[cfg(test)]
-mod unit_tests;
-#[cfg(test)]
 mod multitest;
+#[cfg(test)]
+mod unit_tests;
 pub use error::ContractError;
 pub use helpers::{ExpiryRange, ExpiryRangeError, MarketplaceContract};

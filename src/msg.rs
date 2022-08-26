@@ -2,7 +2,7 @@ use crate::{
     helpers::ExpiryRange,
     state::{Offer, SudoParams},
 };
-use cosmwasm_std::{Timestamp, Uint128 };
+use cosmwasm_std::{Timestamp, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -67,8 +67,8 @@ pub enum SudoMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Offer { id: u8 },
-    OffersBySender { sender: String},
-    OffersByPeer { peer: String},
+    OffersBySender { sender: String },
+    OffersByPeer { peer: String },
     Params {},
 }
 

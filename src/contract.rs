@@ -1,18 +1,22 @@
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, TokenMsg, QueryMsg, SudoMsg};
-use crate::query::{query_offer, query_offers_by_sender, query_offers_by_peer};
-use crate::state::{SudoParams, SUDO_PARAMS, Token};
-use crate::execute::{execute_create_offer, execute_remove_offer, execute_accept_offer, execute_reject_offer, execute_remove_stale_offer};
+use crate::execute::{
+    execute_accept_offer, execute_create_offer, execute_reject_offer, execute_remove_offer,
+    execute_remove_stale_offer,
+};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg, TokenMsg};
+use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender};
+use crate::state::{SudoParams, Token, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
 
 // use crate::query::{query_offers_by_sender};
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Deps, to_binary, Empty, StdError, StdResult, Binary};
-use cw2::{set_contract_version};
+use cosmwasm_std::{
+    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, StdError, StdResult,
+};
+use cw2::set_contract_version;
 use sg_std::Response;
-
 
 // Version info for migration info
 const CONTRACT_NAME: &str = "crates.iosg-p2p-nft-trade";
@@ -27,11 +31,11 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let params = SudoParams { 
-        escrow_deposit_amount: msg.escrow_deposit_amount, 
-        offer_expiry: msg.offer_expiry, 
-        maintainer: deps.api.addr_validate(&msg.maintainer)?, 
-        removal_reward_bps: msg.removal_reward_bps 
+    let params = SudoParams {
+        escrow_deposit_amount: msg.escrow_deposit_amount,
+        offer_expiry: msg.offer_expiry,
+        maintainer: deps.api.addr_validate(&msg.maintainer)?,
+        removal_reward_bps: msg.removal_reward_bps,
     };
     SUDO_PARAMS.save(deps.storage, &params)?;
 
@@ -47,18 +51,34 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     let api = deps.api;
 
-        match msg {
-        ExecuteMsg::CreateOffer { 
-            offered_nfts, 
-            wanted_nfts, 
-            peer, 
-            expires_at 
-        } => execute_create_offer(deps, env, info, 
-            offered_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
-            wanted_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
-            api.addr_validate(&peer)?, 
-            expires_at),
-            
+    match msg {
+        ExecuteMsg::CreateOffer {
+            offered_nfts,
+            wanted_nfts,
+            peer,
+            expires_at,
+        } => execute_create_offer(
+            deps,
+            env,
+            info,
+            offered_nfts
+                .into_iter()
+                .map(|nft: TokenMsg| Token {
+                    collection: api.addr_validate(&nft.collection).unwrap(),
+                    token_id: nft.token_id,
+                })
+                .collect(),
+            wanted_nfts
+                .into_iter()
+                .map(|nft: TokenMsg| Token {
+                    collection: api.addr_validate(&nft.collection).unwrap(),
+                    token_id: nft.token_id,
+                })
+                .collect(),
+            api.addr_validate(&peer)?,
+            expires_at,
+        ),
+
         ExecuteMsg::RemoveOffer { id } => execute_remove_offer(deps, info, id),
         ExecuteMsg::AcceptOffer { id } => execute_accept_offer(deps, env, info, id),
         ExecuteMsg::RejectOffer { id } => execute_reject_offer(deps, info, id),
@@ -72,8 +92,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
     match msg {
         QueryMsg::Offer { id } => to_binary(&query_offer(deps, id)?),
-        QueryMsg::OffersBySender { sender} => to_binary(&query_offers_by_sender(deps,api.addr_validate(&sender)?)?),
-        QueryMsg::OffersByPeer {peer} => to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?),
+        QueryMsg::OffersBySender { sender } => {
+            to_binary(&query_offers_by_sender(deps, api.addr_validate(&sender)?)?)
+        }
+        QueryMsg::OffersByPeer { peer } => {
+            to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?)
+        }
         QueryMsg::Params {} => todo!(),
     }
 }

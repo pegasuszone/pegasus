@@ -1,18 +1,18 @@
 #[cfg(test)]
-use cosmwasm_std::{Addr, Timestamp, Uint128, coins, Coin, Empty};
+use cosmwasm_std::{coins, Addr, Coin, Empty, Timestamp, Uint128};
 use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
 use cw_utils::Expiration;
-use sg721::msg::{InstantiateMsg as Sg721InstantiateMsg};
+use sg721::msg::InstantiateMsg as Sg721InstantiateMsg;
 use sg721::state::CollectionInfo;
 
-use cw_multi_test::{ContractWrapper, Contract, Executor, BankSudo, SudoMsg as CwSudoMsg};
+use cw_multi_test::{BankSudo, Contract, ContractWrapper, Executor, SudoMsg as CwSudoMsg};
 use sg_multi_test::StargazeApp;
 
-use sg_std::{NATIVE_DENOM, StargazeMsgWrapper};
+use sg_std::{StargazeMsgWrapper, NATIVE_DENOM};
 
+use crate::msg::{ExecuteMsg, OffersResponse, QueryMsg, TokenMsg};
 use crate::ContractError;
-use crate::msg::{ExecuteMsg, TokenMsg, QueryMsg, OffersResponse};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
@@ -25,9 +25,8 @@ const TOKEN4_ID: u32 = 456;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 60*10000;
+const MAX_EXPIRY: u64 = 60 * 10000;
 const MIN_EXPIRY: u64 = 1;
-
 
 fn custom_mock_app() -> StargazeApp {
     StargazeApp::default()
@@ -66,7 +65,10 @@ fn setup_contracts(
     let p2p_contract_id = router.store_code(contract_p2p_trade());
     let msg = crate::msg::InstantiateMsg {
         escrow_deposit_amount: Uint128::new(0),
-        offer_expiry: crate::ExpiryRange { min: MIN_EXPIRY, max: MAX_EXPIRY },
+        offer_expiry: crate::ExpiryRange {
+            min: MIN_EXPIRY,
+            max: MAX_EXPIRY,
+        },
         maintainer: CREATOR.to_string(),
         removal_reward_bps: 0,
     };
@@ -88,9 +90,15 @@ fn setup_contracts(
         name: COLLECTION_A.to_string(),
         symbol: "MAU".to_string(),
         minter: CREATOR.to_string(),
-        collection_info: CollectionInfo { creator: CREATOR.to_string(), description: "test".to_string(), image: "ipfs://test".to_string(), external_link: None, royalty_info: None },
+        collection_info: CollectionInfo {
+            creator: CREATOR.to_string(),
+            description: "test".to_string(),
+            image: "ipfs://test".to_string(),
+            external_link: None,
+            royalty_info: None,
+        },
     };
-    
+
     let collection_a = router
         .instantiate_contract(
             sg721_id,
@@ -102,26 +110,35 @@ fn setup_contracts(
         )
         .unwrap();
 
-           // Setup media contract
+    // Setup media contract
     let sg721_id = router.store_code(contract_sg721());
     let msg = Sg721InstantiateMsg {
         name: COLLECTION_A.to_string(),
         symbol: "MAU".to_string(),
         minter: CREATOR.to_string(),
-        collection_info: CollectionInfo { creator: CREATOR.to_string(), description: "test".to_string(), image: "ipfs://test".to_string(), external_link: None, royalty_info: None },
+        collection_info: CollectionInfo {
+            creator: CREATOR.to_string(),
+            description: "test".to_string(),
+            image: "ipfs://test".to_string(),
+            external_link: None,
+            royalty_info: None,
+        },
     };
     let collection_b = router
-    .instantiate_contract(
-        sg721_id,
-        creator.clone(),
-        &msg,
-        &coins(1_000_000_000, NATIVE_DENOM),
-        "NFT",
-        Some(creator.to_string()),
-    )
-    .unwrap();
+        .instantiate_contract(
+            sg721_id,
+            creator.clone(),
+            &msg,
+            &coins(1_000_000_000, NATIVE_DENOM),
+            "NFT",
+            Some(creator.to_string()),
+        )
+        .unwrap();
 
-    println!("collection_a: {:?}, collection_b: {:?}", collection_a, collection_b);
+    println!(
+        "collection_a: {:?}, collection_b: {:?}",
+        collection_a, collection_b
+    );
 
     Ok((p2p_trade, collection_a, collection_b))
 }
@@ -171,7 +188,6 @@ fn setup_accounts(router: &mut StargazeApp) -> Result<(Addr, Addr, Addr), Contra
 
     Ok((sender, peer, creator))
 }
-
 
 fn mint_for(
     router: &mut StargazeApp,
@@ -239,75 +255,177 @@ fn create_offer() {
 
     mint_for(router, &peer, &creator, &collection_a, TOKEN2_ID);
     mint_for(router, &peer, &creator, &collection_b, TOKEN2_ID);
-    
+
     mint_for(router, &creator, &creator, &collection_a, TOKEN3_ID);
     mint_for(router, &creator, &creator, &collection_a, TOKEN4_ID);
 
-    let exec_create_msg = ExecuteMsg::CreateOffer { 
-        offered_nfts: vec![TokenMsg { collection: collection_a.to_string(), token_id: TOKEN1_ID}], 
-        wanted_nfts: vec![TokenMsg {collection: collection_a.to_string(), token_id: TOKEN2_ID}], 
-        peer: peer.to_string(), expires_at: None };
-    
+    let exec_create_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN1_ID,
+        }],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
+
     // sender should fail to create a offer if the nfts are not approved yet
-    let err = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]).unwrap_err();
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_msg,
+            &[],
+        )
+        .unwrap_err();
     assert_eq!(
         err.downcast::<ContractError>().unwrap(),
-        ContractError::Unauthorized { collection: collection_a.to_string(), token_id: TOKEN1_ID }
+        ContractError::Unauthorized {
+            collection: collection_a.to_string(),
+            token_id: TOKEN1_ID
+        }
     );
 
     // Approves contract on the sender side
-    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, None);
-    approve(router, &sender, &collection_b, &trade_contract, TOKEN1_ID, None);
-    
-    let res = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]);
+    approve(
+        router,
+        &sender,
+        &collection_a,
+        &trade_contract,
+        TOKEN1_ID,
+        None,
+    );
+    approve(
+        router,
+        &sender,
+        &collection_b,
+        &trade_contract,
+        TOKEN1_ID,
+        None,
+    );
+
+    let res = router.execute_contract(
+        sender.clone(),
+        trade_contract.clone(),
+        &exec_create_msg,
+        &[],
+    );
     assert!(res.is_ok(), "Offer should be correct.");
 
-    let query_msg = QueryMsg::OffersBySender { sender: sender.to_string()};
-    let qres: OffersResponse = router.wrap().query_wasm_smart(trade_contract.clone(), &query_msg).unwrap();
+    let query_msg = QueryMsg::OffersBySender {
+        sender: sender.to_string(),
+    };
+    let qres: OffersResponse = router
+        .wrap()
+        .query_wasm_smart(trade_contract.clone(), &query_msg)
+        .unwrap();
     assert!(qres.offers.len() == 1);
     let on_chain_offer = qres.offers.first().unwrap();
-    assert_eq!(on_chain_offer.offered_nfts.first().unwrap().token_id, TOKEN1_ID);
-
+    assert_eq!(
+        on_chain_offer.offered_nfts.first().unwrap().token_id,
+        TOKEN1_ID
+    );
 
     // if the token is already being offered by the sender in another offer, the tx should fail
-    let exec_create_not_owned_by_peer_msg = ExecuteMsg::CreateOffer { 
-        offered_nfts: vec![TokenMsg { collection: collection_a.to_string(), token_id: TOKEN1_ID}], 
-        wanted_nfts: vec![TokenMsg {collection: collection_a.to_string(), token_id: TOKEN2_ID}], 
-        peer: peer.to_string(), expires_at: None };
-    
-    let err = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_not_owned_by_peer_msg, &[]).unwrap_err();
+    let exec_create_not_owned_by_peer_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN1_ID,
+        }],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
+
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_not_owned_by_peer_msg,
+            &[],
+        )
+        .unwrap_err();
     assert_eq!(
         err.downcast::<ContractError>().unwrap(),
-        ContractError::TokenAlreadyOffered {collection: collection_a.to_string(), token_id: TOKEN1_ID, offer_id: 1 }
+        ContractError::TokenAlreadyOffered {
+            collection: collection_a.to_string(),
+            token_id: TOKEN1_ID,
+            offer_id: 1
+        }
     );
 
     // if the sender doesnt own the nfts it is trying to offer, the tx should fail
-    let exec_create_not_owned_by_sender_msg = ExecuteMsg::CreateOffer { 
-        offered_nfts: vec![TokenMsg { collection: collection_a.to_string(), token_id: TOKEN3_ID}], 
-        wanted_nfts: vec![TokenMsg {collection: collection_a.to_string(), token_id: TOKEN2_ID}], 
-        peer: peer.to_string(), expires_at: None };    
-        
-    let err = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_not_owned_by_sender_msg, &[]).unwrap_err();
-    assert_eq!(
-        err.downcast::<ContractError>().unwrap(),
-        ContractError::UnauthorizedSender { }
-    );
-    
-    // if the peer doesnt own the nfts wanted by the sender, the offer should fail
-    let exec_create_not_owned_by_peer_msg = ExecuteMsg::CreateOffer { 
-        offered_nfts: vec![TokenMsg { collection: collection_b.to_string(), token_id: TOKEN1_ID}], 
-        wanted_nfts: vec![TokenMsg {collection: collection_a.to_string(), token_id: TOKEN3_ID}], 
-        peer: peer.to_string(), expires_at: None };
-    
-    let err = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_not_owned_by_peer_msg, &[]).unwrap_err();
-    assert_eq!(
-        err.downcast::<ContractError>().unwrap(),
-        ContractError::UnauthorizedPeer { collection: collection_a.to_string(), token_id: TOKEN3_ID, peer: peer.to_string()}
-    );
-    
-    
-    approve(router, &peer, &collection_a, &trade_contract, TOKEN2_ID, None);
+    let exec_create_not_owned_by_sender_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN3_ID,
+        }],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
 
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_not_owned_by_sender_msg,
+            &[],
+        )
+        .unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::UnauthorizedSender {}
+    );
+
+    // if the peer doesnt own the nfts wanted by the sender, the offer should fail
+    let exec_create_not_owned_by_peer_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![TokenMsg {
+            collection: collection_b.to_string(),
+            token_id: TOKEN1_ID,
+        }],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN3_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
+
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_not_owned_by_peer_msg,
+            &[],
+        )
+        .unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::UnauthorizedPeer {
+            collection: collection_a.to_string(),
+            token_id: TOKEN3_ID,
+            peer: peer.to_string()
+        }
+    );
+
+    approve(
+        router,
+        &peer,
+        &collection_a,
+        &trade_contract,
+        TOKEN2_ID,
+        None,
+    );
 }
 
 #[test]
@@ -323,32 +441,64 @@ fn accept_offer() {
 
     mint_for(router, &peer, &creator, &collection_a, TOKEN2_ID);
     mint_for(router, &peer, &creator, &collection_b, TOKEN2_ID);
-    
+
     mint_for(router, &creator, &creator, &collection_a, TOKEN3_ID);
     mint_for(router, &creator, &creator, &collection_a, TOKEN4_ID);
 
-    let exec_create_msg = ExecuteMsg::CreateOffer { 
-        offered_nfts: vec![TokenMsg { collection: collection_a.to_string(), token_id: TOKEN1_ID}], 
-        wanted_nfts: vec![TokenMsg {collection: collection_a.to_string(), token_id: TOKEN2_ID}], 
-        peer: peer.to_string(), expires_at: None };
+    let exec_create_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN1_ID,
+        }],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
 
     // Approves contract on the sender side
-    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, Some(Expiration::AtTime(Timestamp::from_seconds(1900))));
-    
-    let res = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]);
+    approve(
+        router,
+        &sender,
+        &collection_a,
+        &trade_contract,
+        TOKEN1_ID,
+        Some(Expiration::AtTime(Timestamp::from_seconds(1900))),
+    );
+
+    let res = router.execute_contract(
+        sender.clone(),
+        trade_contract.clone(),
+        &exec_create_msg,
+        &[],
+    );
     // Offer should now be created properly.
     assert!(res.is_ok(), "Offer should be correct.");
 
     let exec_accept_msg = ExecuteMsg::AcceptOffer { id: 1 };
     // test when peer accepts without approval on peer side
-    let err = router.execute_contract(peer.clone(), trade_contract.clone(), &exec_accept_msg, &[]).unwrap_err();
+    let err = router
+        .execute_contract(peer.clone(), trade_contract.clone(), &exec_accept_msg, &[])
+        .unwrap_err();
     assert_eq!(
         err.downcast::<ContractError>().unwrap(),
-        ContractError::Unauthorized { collection: collection_a.to_string(), token_id: TOKEN2_ID }
+        ContractError::Unauthorized {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID
+        }
     );
 
     // approve on the peer side
-    approve(router, &peer, &collection_a, &trade_contract, TOKEN2_ID, None);
+    approve(
+        router,
+        &peer,
+        &collection_a,
+        &trade_contract,
+        TOKEN2_ID,
+        None,
+    );
 
     // // test when peer accepts without approval on sender side
     // setup_block_time(router, 2000); // approval should be expired by now
@@ -358,23 +508,42 @@ fn accept_offer() {
     //     ContractError::UnauthorizedOperator {  }
     // );
 
-   // approve again on the sender side 
-    approve(router, &sender, &collection_a, &trade_contract, TOKEN1_ID, None);
+    // approve again on the sender side
+    approve(
+        router,
+        &sender,
+        &collection_a,
+        &trade_contract,
+        TOKEN1_ID,
+        None,
+    );
 
     let res = router.execute_contract(peer.clone(), trade_contract, &exec_accept_msg, &[]);
     assert!(res.is_ok());
 
     // check if the NFTs are transfered properly
-    let owner_of_1_query_msg = Cw721QueryMsg::OwnerOf { token_id: TOKEN1_ID.to_string(), include_expired: None };
-    let owner_of_2_query_msg = Cw721QueryMsg::OwnerOf { token_id: TOKEN2_ID.to_string(), include_expired: None };
+    let owner_of_1_query_msg = Cw721QueryMsg::OwnerOf {
+        token_id: TOKEN1_ID.to_string(),
+        include_expired: None,
+    };
+    let owner_of_2_query_msg = Cw721QueryMsg::OwnerOf {
+        token_id: TOKEN2_ID.to_string(),
+        include_expired: None,
+    };
 
-    let res1: OwnerOfResponse = router.wrap().query_wasm_smart(collection_a.clone(), &owner_of_1_query_msg).unwrap();
-    let res2: OwnerOfResponse = router.wrap().query_wasm_smart(collection_a, &owner_of_2_query_msg).unwrap();
-    
+    let res1: OwnerOfResponse = router
+        .wrap()
+        .query_wasm_smart(collection_a.clone(), &owner_of_1_query_msg)
+        .unwrap();
+    let res2: OwnerOfResponse = router
+        .wrap()
+        .query_wasm_smart(collection_a, &owner_of_2_query_msg)
+        .unwrap();
+
     assert_eq!(res1.owner, peer.to_string());
     assert_eq!(res2.owner, sender.to_string());
 
     // test when peer accepts whithout ownership first send
 
-    // test if the contract 
+    // test if the contract
 }
