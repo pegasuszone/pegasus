@@ -1,11 +1,12 @@
-mod error;
-pub mod execute;
-mod helpers;
+pub mod contract;
 pub mod msg;
-// #[cfg(test)]
-pub mod query;
 pub mod state;
-pub mod sudo;
+mod error;
+mod execute;
+mod helpers;
+mod query;
+mod sudo;
+
 #[cfg(test)]
 mod unit_tests;
 #[cfg(test)]

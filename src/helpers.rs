@@ -1,5 +1,5 @@
 use crate::msg::ExecuteMsg;
-use cosmwasm_std::{to_binary, Addr, Api, BlockInfo, StdError, StdResult, Timestamp, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, BlockInfo, StdError, StdResult, Timestamp, WasmMsg};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sg_std::CosmosMsg;
@@ -23,13 +23,6 @@ impl MarketplaceContract {
         }
         .into())
     }
-}
-
-pub fn map_validate(api: &dyn Api, addresses: &[String]) -> StdResult<Vec<Addr>> {
-    addresses
-        .iter()
-        .map(|addr| api.addr_validate(addr))
-        .collect()
 }
 
 #[derive(Error, Debug, PartialEq)]

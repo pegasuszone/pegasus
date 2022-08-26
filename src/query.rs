@@ -1,22 +1,10 @@
-use crate::msg::{OfferResponse, OffersResponse, QueryMsg};
+use crate::msg::{OfferResponse, OffersResponse};
 use crate::state::offers;
-use cosmwasm_std::{entry_point, to_binary, Addr, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{Addr, Deps, Order, StdResult};
 
 // Query limits
-const DEFAULT_QUERY_LIMIT: u32 = 10;
-const MAX_QUERY_LIMIT: u32 = 30;
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    let api = deps.api;
-
-    match msg {
-        QueryMsg::Offer { id } => to_binary(&query_offer(deps, id)?),
-        QueryMsg::OffersBySender { sender, start_after, limit } => to_binary(&query_offers_by_sender(deps,api.addr_validate(&sender)?)?),
-        QueryMsg::OffersByPeer {peer, start_after, limit } => to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?),
-        QueryMsg::Params {} => todo!(),
-    }
-}
+// const DEFAULT_QUERY_LIMIT: u32 = 10;
+// const MAX_QUERY_LIMIT: u32 = 30;
 
 pub fn query_offer(deps: Deps, id: u8) -> StdResult<OfferResponse> {
     let offer = offers().may_load(deps.storage, &[id])?;

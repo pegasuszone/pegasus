@@ -67,8 +67,8 @@ pub enum SudoMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Offer { id: u8 },
-    OffersBySender { sender: String, start_after: Option<u32>, limit: Option<u32> },
-    OffersByPeer { peer: String, start_after: Option<u32>, limit: Option<u32> },
+    OffersBySender { sender: String},
+    OffersByPeer { peer: String},
     Params {},
 }
 

@@ -1,8 +1,7 @@
 use crate::error::ContractError;
 use crate::helpers::ExpiryRange;
-use crate::msg::SudoMsg;
 use crate::state::SUDO_PARAMS;
-use cosmwasm_std::{entry_point, DepsMut, Env, Uint128};
+use cosmwasm_std::{DepsMut, Env, Uint128};
 use sg_std::Response;
 
 pub struct ParamInfo {
@@ -10,29 +9,6 @@ pub struct ParamInfo {
     pub offer_expiry: Option<ExpiryRange>,
     pub maintainer: Option<String>,
     pub removal_reward_bps: Option<u64>,
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
-    // let api = deps.api;
-
-    match msg {
-        SudoMsg::UpdateParams {
-            escrow_deposit_amount,
-            offer_expiry,
-            maintainer,
-            removal_reward_bps,
-        } => sudo_update_params(
-            deps,
-            env,
-            ParamInfo {
-                escrow_deposit_amount,
-                offer_expiry,
-                removal_reward_bps,
-                maintainer,
-            },
-        ),
-    }
 }
 
 /// Only governance can update contract params

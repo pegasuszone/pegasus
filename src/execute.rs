@@ -1,71 +1,14 @@
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, TokenMsg};
-use crate::state::{SudoParams, SUDO_PARAMS, Token, Offer, next_offer_id, offers};
+use crate::state::{SUDO_PARAMS, Token, Offer, next_offer_id, offers};
 use crate::query::query_offers_by_sender;
 // use crate::query::{query_offers_by_sender};
 
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Timestamp, Deps, WasmMsg, to_binary, SubMsg};
-use cw2::set_contract_version;
 use cw721::{OwnerOfResponse, Cw721ExecuteMsg};
 use cw721_base::helpers::Cw721Contract;
 use sg_std::Response;
 
-// Version info for migration info
-const CONTRACT_NAME: &str = "crates.iosg-p2p-nft-trade";
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    msg: InstantiateMsg,
-) -> Result<Response, ContractError> {
-    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-
-    let params = SudoParams { 
-        escrow_deposit_amount: msg.escrow_deposit_amount, 
-        offer_expiry: msg.offer_expiry, 
-        maintainer: deps.api.addr_validate(&msg.maintainer)?, 
-        removal_reward_bps: msg.removal_reward_bps 
-    };
-    SUDO_PARAMS.save(deps.storage, &params)?;
-
-    Ok(Response::new())
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> Result<Response, ContractError> {
-    let api = deps.api;
-
-        match msg {
-        ExecuteMsg::CreateOffer { 
-            offered_nfts, 
-            wanted_nfts, 
-            peer, 
-            expires_at 
-        } => execute_create_offer(deps, env, info, 
-            offered_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
-            wanted_nfts.into_iter().map(|nft: TokenMsg| Token { collection: api.addr_validate(&nft.collection).unwrap(), token_id: nft.token_id }).collect(),
-            api.addr_validate(&peer)?, 
-            expires_at),
-            
-        ExecuteMsg::RemoveOffer { id } => execute_remove_offer(deps, info, id),
-        ExecuteMsg::AcceptOffer { id } => execute_accept_offer(deps, env, info, id),
-        ExecuteMsg::RejectOffer { id } => execute_reject_offer(deps, info, id),
-        ExecuteMsg::RemoveStaleOffer { id } => execute_remove_stale_offer(deps, env, info, id),
-    }
-}
-
-
-fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_tokens: Vec<Token>, wanted_tokens: Vec<Token>, peer: Addr, expires_at: Option<Timestamp> ) -> Result<Response, ContractError> {
+pub fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_tokens: Vec<Token>, wanted_tokens: Vec<Token>, peer: Addr, expires_at: Option<Timestamp> ) -> Result<Response, ContractError> {
     if info.sender == peer {
         // TODO: This error needs refactor: Dont know how to describe this situation. SelfSend?
         return Err(ContractError::AlreadyOwned {  });
@@ -123,7 +66,7 @@ fn execute_create_offer(deps: DepsMut, env: Env, info: MessageInfo, offered_toke
     )
 }
 
-fn execute_remove_offer(deps:DepsMut,info: MessageInfo, id:u8) -> Result<Response, ContractError> {
+pub fn execute_remove_offer(deps:DepsMut,info: MessageInfo, id:u8) -> Result<Response, ContractError> {
     // check if the sender of this msg is the sender of the offer
     let offer = offers().load(deps.as_ref().storage, &[id])?;
     if offer.sender != info.sender {
@@ -138,7 +81,7 @@ fn execute_remove_offer(deps:DepsMut,info: MessageInfo, id:u8) -> Result<Respons
     )
 }
 
-fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
+pub fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
     let offer = offers().load(deps.storage, &[id])?;
 
     let params = SUDO_PARAMS.load(deps.storage)?;
@@ -194,7 +137,7 @@ fn execute_accept_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Res
     )
 }
 
-fn transfer_nfts(recipient: String, nfts: Vec<Token>, res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>) -> Result<(), ContractError> {
+pub fn transfer_nfts(recipient: String, nfts: Vec<Token>, res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>) -> Result<(), ContractError> {
     Ok(for token in nfts {
         let cw721_transfer_msg = Cw721ExecuteMsg::TransferNft { recipient: recipient.clone(), token_id: token.token_id.to_string() };
         let exec_cw721_transfer_msg = WasmMsg::Execute { contract_addr: token.collection.to_string(), msg: to_binary(&cw721_transfer_msg)?, funds: vec![] };
@@ -204,7 +147,7 @@ fn transfer_nfts(recipient: String, nfts: Vec<Token>, res: &mut cosmwasm_std::Re
     })
 }
 
-fn execute_reject_offer(deps:DepsMut, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
+pub fn execute_reject_offer(deps:DepsMut, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
     // check if the sender of this msg is the peer of the offer
     let offer = offers().load(deps.as_ref().storage, &[id])?;
     if offer.peer != info.sender {
@@ -219,7 +162,7 @@ fn execute_reject_offer(deps:DepsMut, info: MessageInfo, id:u8) -> Result<Respon
     )
 }
 
-fn execute_remove_stale_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
+pub fn execute_remove_stale_offer(deps:DepsMut, env: Env, info: MessageInfo, id:u8) -> Result<Response, ContractError> {
     let offer = offers().load(deps.storage, &[id])?;
 
     let params = SUDO_PARAMS.load(deps.storage)?;

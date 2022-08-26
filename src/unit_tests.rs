@@ -2,23 +2,18 @@
 
 use crate::error::ContractError;
 
-use crate::execute::execute;
+use crate::contract::{execute, instantiate};
 use crate::msg::ExecuteMsg;
 use crate::state::offers;
-use crate::{msg::InstantiateMsg, ExpiryRange, execute::instantiate, state::{Offer, Token}};
+use crate::{msg::InstantiateMsg, ExpiryRange, state::{Offer, Token}};
 
-use cosmwasm_std::{testing::*, DepsMut, Addr, coins, Timestamp, StdError, Empty};
-use cw721_base::{Cw721Contract, Extension, InstantiateMsg as Cw721InstantiateMsg, ExecuteMsg as Cw721ExecuteMsg, MintMsg};
-
-
+use cosmwasm_std::{testing::*, DepsMut, Addr, Timestamp, StdError};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
 const COLLECTION_B: &str = "collection-b";
 const TOKEN1_ID: u32 = 123;
 const TOKEN2_ID: u32 = 234;
-const TOKEN3_ID: u32 = 345;
-const TOKEN4_ID: u32 = 456;
 
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
@@ -43,8 +38,6 @@ fn remove_offer() {
     let mut deps = mock_dependencies();
 
     let collection = Addr::unchecked(COLLECTION_A);
-    let sender = Addr::unchecked(SENDER);
-    let peer = Addr::unchecked(PEER);
     
     instantiate_trade_contract(deps.as_mut());
     
@@ -80,8 +73,6 @@ fn reject_offer() {
     let mut deps = mock_dependencies();
 
     let collection = Addr::unchecked(COLLECTION_B);
-    let sender = Addr::unchecked(SENDER);
-    let peer = Addr::unchecked(PEER);
     
     instantiate_trade_contract(deps.as_mut());
     
@@ -115,13 +106,9 @@ fn reject_offer() {
 //---------------------------------------------------------
 // test helpers 
 //---------------------------------------------------------
-fn token_uri(collection: &str, token_id: &str) ->String {
-    "https://www.maurits-bos.me/nfts/".to_string() + collection + token_id
-}
 
 // helper that injects a offer into the database
 fn save_new_offer( deps: DepsMut, sender: &str, peer: &str, offered_nfts: Vec<Token>, wanted_nfts: Vec<Token>) {
-let collection = Addr::unchecked(COLLECTION_A);
     let sender = Addr::unchecked(sender);
     let peer = Addr::unchecked(peer);
     

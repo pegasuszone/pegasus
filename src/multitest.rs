@@ -1,10 +1,9 @@
 #[cfg(test)]
-use cosmwasm_std::testing::{mock_dependencies, mock_env};
-use cosmwasm_std::{Addr, Timestamp, Uint128, coins, Coin, Empty, Querier};
+use cosmwasm_std::{Addr, Timestamp, Uint128, coins, Coin, Empty};
 use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
 use cw_utils::Expiration;
-use sg721::msg::{InstantiateMsg as Sg721InstantiateMsg, RoyaltyInfoResponse};
+use sg721::msg::{InstantiateMsg as Sg721InstantiateMsg};
 use sg721::state::CollectionInfo;
 
 use cw_multi_test::{ContractWrapper, Contract, Executor, BankSudo, SudoMsg as CwSudoMsg};
@@ -17,7 +16,7 @@ use crate::msg::{ExecuteMsg, TokenMsg, QueryMsg, OffersResponse};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
-const COLLECTION_B: &str = "collection-b";
+// const COLLECTION_B: &str = "collection-b";
 const TOKEN1_ID: u32 = 123;
 const TOKEN2_ID: u32 = 234;
 const TOKEN3_ID: u32 = 345;
@@ -36,11 +35,11 @@ fn custom_mock_app() -> StargazeApp {
 
 pub fn contract_p2p_trade() -> Box<dyn Contract<StargazeMsgWrapper>> {
     let contract = ContractWrapper::new(
-        crate::execute::execute,
-        crate::execute::instantiate,
-        crate::query::query,
+        crate::contract::execute,
+        crate::contract::instantiate,
+        crate::contract::query,
     )
-    .with_sudo(crate::sudo::sudo);
+    .with_sudo(crate::contract::sudo);
     Box::new(contract)
 }
 
@@ -213,7 +212,7 @@ fn approve(
     assert!(res.is_ok());
 }
 
-fn transfer(
+fn _transfer(
     router: &mut StargazeApp,
     creator: &Addr,
     recipient: &Addr,
@@ -263,7 +262,7 @@ fn create_offer() {
     let res = router.execute_contract(sender.clone(), trade_contract.clone(), &exec_create_msg, &[]);
     assert!(res.is_ok(), "Offer should be correct.");
 
-    let query_msg = QueryMsg::OffersBySender { sender: sender.to_string(), start_after: None, limit: None };
+    let query_msg = QueryMsg::OffersBySender { sender: sender.to_string()};
     let qres: OffersResponse = router.wrap().query_wasm_smart(trade_contract.clone(), &query_msg).unwrap();
     assert!(qres.offers.len() == 1);
     let on_chain_offer = qres.offers.first().unwrap();
