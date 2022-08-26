@@ -1,92 +1,21 @@
 
 # Peer-2-Peer NFT trade contract
 
-This contract allows you to offer a nft you own for a nft someone else owns
-Inspiration took from the nft marketplace "https://github.com/public-awesome/marketplace/blob/bfab827cdff84f76f4a637edb3920042c1606b4c/contracts/marketplace/src/state.rshg "
+This contract allows you to offer any NFT('s) you own for an NFT or multiple that someone else owns.
 
-First, the owner of the nft needs to approve the contract to spend the token (see cw721-base (approve message)[https://github.com/CosmWasm/cw-nfts/blob/4e26419bb02f4b871fda487964a80bd419207428/contracts/cw721-base/src/execute.rs#L50])
+Anyone can create an Offer by calling `CreateOffer`, which contains the NFT's you would like to offer, The NFT's you would like to recieve, the peer which ownes the requested NFT's and an optional expiry date. If no expiry date is provided, the minimum will be used.
 
-Then, the contract will set a Ask offer just like the market place only the prive is a specific nft token. 
+When a offer is pending the following executions can be performed:
+- The Creator can revoke it using `RemoveOffer` 
+- The peer can reject it using `RejectOffer`
+- The peer can accept it using `AcceptOffer`
+- The contract admin can remove expired offers using `RemoveStaleOffer`
 
 
+### Authorizing Trade Contract
+In order for the contract to create a Offer, the owner of the offered NFT's needs to approve the contract to transfer those NFT's (see cw721-base (approve message)[https://github.com/CosmWasm/cw-nfts/blob/4e26419bb02f4b871fda487964a80bd419207428/contracts/cw721-base/src/execute.rs#L50])
 
-## cosmwasm template notes
-**Latest: 1.0.0-beta6**
+In order for the peer to accept a pending offer, the peer needs to approve the contract first to transfer the wanted NFT's.
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cw-template.git --name PROJECT_NAME
-````
-
-**Older Version**
-
-Pass version as branch flag:
-
-```sh
-cargo generate --git https://github.com/CosmWasm/cw-template.git --branch <version> --name PROJECT_NAME
-````
-
-Example:
-
-```sh
-cargo generate --git https://github.com/CosmWasm/cw-template.git --branch 0.16 --name PROJECT_NAME
-```
-
-You will now have a new folder called `PROJECT_NAME` (I hope you changed that to something else)
-containing a simple working contract and build system that you can customize.
-
-## Create a Repo
-
-After generating, you have a initialized local git repo, but no commits, and no remote.
-Go to a server (eg. github) and create a new upstream repo (called `YOUR-GIT-URL` below).
-Then run the following:
-
-```sh
-# this is needed to create a valid Cargo.lock file (see below)
-cargo check
-git branch -M main
-git add .
-git commit -m 'Initial Commit'
-git remote add origin YOUR-GIT-URL
-git push -u origin main
-```
-
-## CI Support
-
-We have template configurations for both [GitHub Actions](.github/workflows/Basic.yml)
-and [Circle CI](.circleci/config.yml) in the generated project, so you can
-get up and running with CI right away.
-
-One note is that the CI runs all `cargo` commands
-with `--locked` to ensure it uses the exact same versions as you have locally. This also means
-you must have an up-to-date `Cargo.lock` file, which is not auto-generated.
-The first time you set up the project (or after adding any dep), you should ensure the
-`Cargo.lock` file is updated, so the CI will test properly. This can be done simply by
-running `cargo check` or `cargo unit-test`.
-
-## Using your project
-
-Once you have your custom repo, you should check out [Developing](./Developing.md) to explain
-more on how to run tests and develop code. Or go through the
-[online tutorial](https://docs.cosmwasm.com/) to get a better feel
-of how to develop.
-
-[Publishing](./Publishing.md) contains useful information on how to publish your contract
-to the world, once you are ready to deploy it on a running blockchain. And
-[Importing](./Importing.md) contains information about pulling in other contracts or crates
-that have been published.
-
-Please replace this README file with information about your specific project. You can keep
-the `Developing.md` and `Publishing.md` files as useful referenced, but please set some
-proper description in the README.
-
-## Gitpod integration
-
-[Gitpod](https://www.gitpod.io/) container-based development platform will be enabled on your project by default.
-
-Workspace contains:
- - **rust**: for builds
- - [wasmd](https://github.com/CosmWasm/wasmd): for local node setup and client
- - **jq**: shell JSON manipulation tool
-
-Follow [Gitpod Getting Started](https://www.gitpod.io/docs/getting-started) and launch your workspace.
-
+### Feedback and or suggestions are very welcome!
+We, the authors of this contract, are still learning a lot about Rust and CosmWasm, so any commentary or feedback is very welcome! You can do this by creating an issue, or if you want, we can hop on a call so we can do a extensive code review! 

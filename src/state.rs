@@ -10,8 +10,8 @@ pub struct SudoParams {
     /// Amount in micros to be deposited by the sender of an offer
     /// This escrow will be refunded when the offer is accepted or denied
     /// The sender will lose this deposit if they let the offer expire
-    pub escrow_deposit_amount: Uint128,
-
+    pub escrow_deposit_amount: Uint128, // TODO: This in not implemented yet
+    
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
@@ -19,7 +19,7 @@ pub struct SudoParams {
     /// Developer address
     pub maintainer: Addr,
 
-    /// Stale trade removal reward
+    /// Stale trade removal reward, // TODO: This in not implemented yet
     pub removal_reward_bps: u64,
 }
 
