@@ -86,3 +86,9 @@ pub struct OffersResponse {
 pub struct ParamsResponse {
     pub params: SudoParams,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ContractVersionResponse {
+    pub contract: String,
+    pub version: String,
+}

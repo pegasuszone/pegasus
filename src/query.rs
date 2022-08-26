@@ -1,6 +1,7 @@
-use crate::msg::{OfferResponse, OffersResponse};
+use crate::msg::{OfferResponse, OffersResponse, ContractVersionResponse};
 use crate::state::offers;
 use cosmwasm_std::{Addr, Deps, Order, StdResult};
+use cw2::get_contract_version;
 
 // Query limits
 // const DEFAULT_QUERY_LIMIT: u32 = 10;
@@ -27,7 +28,7 @@ pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersRespo
     Ok(OffersResponse { offers })
 }
 
-// TODO: Implement pagination
+// TODO: Implement pagination (Although people wont have a lot of open offers)
 pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
@@ -41,4 +42,12 @@ pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse>
         .collect::<StdResult<Vec<_>>>()?;
 
     Ok(OffersResponse { offers })
+}
+
+pub fn query_contract_version(deps:Deps) -> StdResult<ContractVersionResponse> {
+    let ver = get_contract_version(deps.storage)?;
+    Ok( ContractVersionResponse {
+        contract: ver.contract,
+        version: ver.version,
+    })
 }
