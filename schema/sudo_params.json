@@ -34,7 +34,7 @@
       ]
     },
     "removal_reward_bps": {
-      "description": "Stale trade removal reward",
+      "description": "Stale trade removal reward, // TODO: This in not implemented yet",
       "type": "integer",
       "format": "uint64",
       "minimum": 0.0

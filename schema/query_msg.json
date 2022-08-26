@@ -36,24 +36,8 @@
             "sender"
           ],
           "properties": {
-            "limit": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "uint32",
-              "minimum": 0.0
-            },
             "sender": {
               "type": "string"
-            },
-            "start_after": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "uint32",
-              "minimum": 0.0
             }
           }
         }
@@ -72,24 +56,8 @@
             "peer"
           ],
           "properties": {
-            "limit": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "uint32",
-              "minimum": 0.0
-            },
             "peer": {
               "type": "string"
-            },
-            "start_after": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "uint32",
-              "minimum": 0.0
             }
           }
         }

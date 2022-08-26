@@ -1,1 +1,1 @@
-e148fd111c86d8bfda7cccaa22bb8d93eeb95abdac80a6f5860b62abaa0f1235  ./target/wasm32-unknown-unknown/release/sg_p2p_nft_trade.wasm
+d87f124248cb0cc649d2cec7d6fd8812c1a51ce5dcf7ed313c3c910603392a1d  ./target/wasm32-unknown-unknown/release/sg_p2p_nft_trade.wasm

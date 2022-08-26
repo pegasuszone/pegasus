@@ -6,7 +6,7 @@
 
 export type ExecuteMsg = {
   create_offer: {
-    expires_at: Timestamp;
+    expires_at?: Timestamp | null;
     offered_nfts: TokenMsg[];
     peer: string;
     wanted_nfts: TokenMsg[];
@@ -53,40 +53,6 @@ export interface ExpiryRange {
   min: number;
   [k: string]: unknown;
 }
-export type Addr = string;
-export interface OfferResponse {
-  offer?: Offer | null;
-  [k: string]: unknown;
-}
-export interface Offer {
-  expires_at: Timestamp;
-  id: number;
-  offered_nfts: Token[];
-  peer: Addr;
-  sender: Addr;
-  wanted_nfts: Token[];
-  [k: string]: unknown;
-}
-export interface Token {
-  collection: Addr;
-  token_id: number;
-  [k: string]: unknown;
-}
-export interface OffersResponse {
-  offers: Offer[];
-  [k: string]: unknown;
-}
-export interface ParamsResponse {
-  params: SudoParams;
-  [k: string]: unknown;
-}
-export interface SudoParams {
-  escrow_deposit_amount: Uint128;
-  maintainer: Addr;
-  offer_expiry: ExpiryRange;
-  removal_reward_bps: number;
-  [k: string]: unknown;
-}
 export type QueryMsg = {
   offer: {
     id: number;
@@ -94,16 +60,12 @@ export type QueryMsg = {
   };
 } | {
   offers_by_sender: {
-    limit?: number | null;
     sender: string;
-    start_after?: number | null;
     [k: string]: unknown;
   };
 } | {
   offers_by_peer: {
-    limit?: number | null;
     peer: string;
-    start_after?: number | null;
     [k: string]: unknown;
   };
 } | {
@@ -111,3 +73,11 @@ export type QueryMsg = {
     [k: string]: unknown;
   };
 };
+export type Addr = string;
+export interface SudoParams {
+  escrow_deposit_amount: Uint128;
+  maintainer: Addr;
+  offer_expiry: ExpiryRange;
+  removal_reward_bps: number;
+  [k: string]: unknown;
+}
