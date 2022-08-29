@@ -1,3 +1,4 @@
+use crate::ExpiryRangeError;
 use crate::error::ContractError;
 use crate::execute::{
     execute_accept_offer, execute_create_offer, execute_reject_offer, execute_remove_offer,
@@ -21,6 +22,8 @@ use sg_std::Response;
 // Version info for migration info
 const CONTRACT_NAME: &str = "crates.iosg-p2p-nft-trade";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const MIN_EXPIRY: u64 = 3600*24; // seconds -> one day
+const MAX_EXPIRY: u64 = 3600*24*28; // seconds -> one month
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -30,6 +33,13 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    if msg.offer_expiry.min < MIN_EXPIRY {
+        return Err(ContractError::ExpiryRange(ExpiryRangeError::InvalidExpirationRange {  }))
+    }
+    if msg.offer_expiry.max > MAX_EXPIRY {
+        return Err(ContractError::ExpiryRange(ExpiryRangeError::InvalidExpirationRange {  }))
+    }
 
     let params = SudoParams {
         escrow_deposit_amount: msg.escrow_deposit_amount,
