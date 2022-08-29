@@ -8,6 +8,9 @@ pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
+    #[error("Can't create an offer without nfts")]
+    EmptyTokenVector {}, 
+
     #[error("UnauthorizedOwner")]
     UnauthorizedSender {},
 
