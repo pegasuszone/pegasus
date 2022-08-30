@@ -3,7 +3,9 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use sg_p2p_nft_trade::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use sg_p2p_nft_trade::msg::{
+    ExecuteMsg, InstantiateMsg, OfferResponse, OffersResponse, ParamsResponse, QueryMsg,
+};
 use sg_p2p_nft_trade::state::SudoParams;
 
 fn main() {
@@ -15,5 +17,8 @@ fn main() {
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
+    export_schema(&schema_for!(OfferResponse), &out_dir);
+    export_schema(&schema_for!(OffersResponse), &out_dir);
+    export_schema(&schema_for!(ParamsResponse), &out_dir);
     export_schema(&schema_for!(SudoParams), &out_dir);
 }

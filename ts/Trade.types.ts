@@ -53,6 +53,40 @@ export interface ExpiryRange {
   min: number;
   [k: string]: unknown;
 }
+export type Addr = string;
+export interface OfferResponse {
+  offer?: Offer | null;
+  [k: string]: unknown;
+}
+export interface Offer {
+  expires_at: Timestamp;
+  id: number;
+  offered_nfts: Token[];
+  peer: Addr;
+  sender: Addr;
+  wanted_nfts: Token[];
+  [k: string]: unknown;
+}
+export interface Token {
+  collection: Addr;
+  token_id: number;
+  [k: string]: unknown;
+}
+export interface OffersResponse {
+  offers: Offer[];
+  [k: string]: unknown;
+}
+export interface ParamsResponse {
+  params: SudoParams;
+  [k: string]: unknown;
+}
+export interface SudoParams {
+  escrow_deposit_amount: Uint128;
+  maintainer: Addr;
+  offer_expiry: ExpiryRange;
+  removal_reward_bps: number;
+  [k: string]: unknown;
+}
 export type QueryMsg = {
   offer: {
     id: number;
@@ -73,11 +107,3 @@ export type QueryMsg = {
     [k: string]: unknown;
   };
 };
-export type Addr = string;
-export interface SudoParams {
-  escrow_deposit_amount: Uint128;
-  maintainer: Addr;
-  offer_expiry: ExpiryRange;
-  removal_reward_bps: number;
-  [k: string]: unknown;
-}

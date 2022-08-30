@@ -24,7 +24,7 @@ echo "\nConnected to wallet '$KEY_NAME'<$KEY_TYPE> @ $KEY_ADDRESS";
 echo "\n========\n";
 
 # Instantiate message config
-export INSTANTIATE_MSG="{\"escrow_deposit_amount\": \"5\", \"offer_expiry\": {\"min\":0,\"max\":3600}, \"maintainer\": \"$KEY_ADDRESS\", \"removal_reward_bps\": 0}";
+export INSTANTIATE_MSG="{\"escrow_deposit_amount\": \"0\", \"offer_expiry\": {\"min\":86400,\"max\":604800}, \"maintainer\": \"$KEY_ADDRESS\", \"removal_reward_bps\": 0}";
 echo $INSTANTIATE_MSG;
 
 ## INIT ##

@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { ExecuteMsg, Timestamp, Uint64, TokenMsg, Uint128, InstantiateMsg, ExpiryRange, QueryMsg, Addr, SudoParams } from "./Trade.types";
+import { ExecuteMsg, Timestamp, Uint64, TokenMsg, Uint128, InstantiateMsg, ExpiryRange, Addr, OfferResponse, Offer, Token, OffersResponse, ParamsResponse, SudoParams, QueryMsg } from "./Trade.types";
 export interface TradeReadOnlyInterface {
   contractAddress: string;
   offer: ({
