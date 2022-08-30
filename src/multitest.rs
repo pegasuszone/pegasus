@@ -259,6 +259,8 @@ fn create_offer() {
     mint_for(router, &creator, &creator, &collection_a, TOKEN3_ID);
     mint_for(router, &creator, &creator, &collection_a, TOKEN4_ID);
 
+    // TODO: Test for empty offered/wanted nft vector
+    
     let exec_create_msg = ExecuteMsg::CreateOffer {
         offered_nfts: vec![TokenMsg {
             collection: collection_a.to_string(),

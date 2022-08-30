@@ -22,6 +22,13 @@ pub fn execute_create_offer(
         return Err(ContractError::AlreadyOwned {});
     }
 
+    if offered_tokens.is_empty() {
+        return Err(ContractError::EmptyTokenVector {  })
+    }
+    if wanted_tokens.is_empty() {
+        return Err(ContractError::EmptyTokenVector {  })
+    }
+
     // check if the sender is the owner of the tokens
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.
@@ -103,6 +110,8 @@ pub fn execute_remove_offer(
     }
 
     offers().remove(deps.storage, &[offer.id])?;
+
+    // TODO: Remove approvals 
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
@@ -215,6 +224,7 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
+    // TODO: Remove approvals 
 
     offers().remove(deps.storage, &[offer.id])?;
 
