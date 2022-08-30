@@ -1,5 +1,5 @@
-# Contract deploy script
-# Run it like this: `zsh ./scripts/deploy_local.sh`
+# Contract migration script
+# Run it like this: `zsh ./scripts/migrate_testnet.sh.sh`
 
 # View your keys with `starsd keys list`
 
