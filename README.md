@@ -17,5 +17,8 @@ In order for the contract to create a Offer, the owner of the offered NFT's need
 
 In order for the peer to accept a pending offer, the peer needs to approve the contract first to transfer the wanted NFT's.
 
+This needs to be done in the frontend, and we recommend grouping those transactions together with the execute message sent to this contract.
+**Approval transactions go first in the list!**
+
 ### Feedback and or suggestions are very welcome!
 We, the authors of this contract, are still learning a lot about Rust and CosmWasm, so any commentary or feedback is very welcome! You can do this by creating an issue, or if you want, we can hop on a call so we can do a extensive code review! 
