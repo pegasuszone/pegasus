@@ -25,8 +25,8 @@ const TOKEN4_ID: u32 = 456;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 60 * 10000;
-const MIN_EXPIRY: u64 = 1;
+const MAX_EXPIRY: u64 = 604800;
+const MIN_EXPIRY: u64 = 86400;
 
 fn custom_mock_app() -> StargazeApp {
     StargazeApp::default()
@@ -260,7 +260,6 @@ fn create_offer() {
     mint_for(router, &creator, &creator, &collection_a, TOKEN4_ID);
 
     // TODO: Test for empty offered/wanted nft vector
-    
     let exec_create_msg = ExecuteMsg::CreateOffer {
         offered_nfts: vec![TokenMsg {
             collection: collection_a.to_string(),

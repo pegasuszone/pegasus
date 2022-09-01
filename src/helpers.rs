@@ -49,9 +49,14 @@ impl ExpiryRange {
     }
 
     /// Validates if given expires time is within the allowable range
-    pub fn is_valid(&self, block: &BlockInfo, expires: Timestamp) -> Result<(), ExpiryRangeError> {
+    pub fn is_valid(
+        &self,
+        block: &BlockInfo,
+        created_at: Timestamp,
+        expires: Timestamp,
+    ) -> Result<(), ExpiryRangeError> {
         let now = block.time;
-        if !(expires > now.plus_seconds(self.min) && expires <= now.plus_seconds(self.max)) {
+        if !(expires > created_at.plus_seconds(self.min) && expires <= now.plus_seconds(self.max)) {
             return Err(ExpiryRangeError::InvalidExpirationRange {});
         }
 

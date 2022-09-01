@@ -23,10 +23,10 @@ pub fn execute_create_offer(
     }
 
     if offered_tokens.is_empty() {
-        return Err(ContractError::EmptyTokenVector {  })
+        return Err(ContractError::EmptyTokenVector {});
     }
     if wanted_tokens.is_empty() {
-        return Err(ContractError::EmptyTokenVector {  })
+        return Err(ContractError::EmptyTokenVector {});
     }
 
     // check if the sender is the owner of the tokens
@@ -80,7 +80,9 @@ pub fn execute_create_offer(
     let params = SUDO_PARAMS.load(deps.storage)?;
     // check if the expiry date is valid
     let expires = expires_at.unwrap_or(env.block.time.plus_seconds(params.offer_expiry.min + 1));
-    params.offer_expiry.is_valid(&env.block, expires)?;
+    params
+        .offer_expiry
+        .is_valid(&env.block, env.block.time, expires)?;
 
     // create and save offer
     let offer = Offer {
@@ -90,6 +92,7 @@ pub fn execute_create_offer(
         sender: info.sender,
         peer: peer,
         expires_at: expires,
+        created_at: env.block.time,
     };
     offers().save(deps.storage, &[offer.id], &offer)?;
 
@@ -111,7 +114,7 @@ pub fn execute_remove_offer(
 
     offers().remove(deps.storage, &[offer.id])?;
 
-    // TODO: Remove approvals 
+    // TODO: Remove approvals
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
@@ -134,7 +137,9 @@ pub fn execute_accept_offer(
     }
 
     // check if the offer is not yet expired
-    params.offer_expiry.is_valid(&env.block, offer.expires_at)?;
+    params
+        .offer_expiry
+        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     // check if the sender owns the requested nfts
     for token in offer.wanted_nfts.clone() {
@@ -224,7 +229,7 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
-    // TODO: Remove approvals 
+    // TODO: Remove approvals
 
     offers().remove(deps.storage, &[offer.id])?;
 
@@ -243,7 +248,9 @@ pub fn execute_remove_stale_offer(
 
     let params = SUDO_PARAMS.load(deps.storage)?;
 
-    params.offer_expiry.is_valid(&env.block, offer.expires_at)?;
+    params
+        .offer_expiry
+        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     if info.sender != params.maintainer {
         return Err(ContractError::UnauthorizedOperator {});

@@ -11,7 +11,6 @@ pub struct SudoParams {
     /// This escrow will be refunded when the offer is accepted or denied
     /// The sender will lose this deposit if they let the offer expire
     pub escrow_deposit_amount: Uint128, // TODO: This in not implemented yet
-    
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
@@ -46,6 +45,7 @@ pub struct Offer {
 
     pub sender: Addr,
     pub peer: Addr,
+    pub created_at: Timestamp,
     pub expires_at: Timestamp,
 }
 
