@@ -65,7 +65,7 @@ pub fn execute_create_offer(
 
     // check if the peer is the owner of the requested tokens
     for token in wanted_tokens.clone() {
-        if peer.to_string()
+        if peer
             != Cw721Contract(token.collection.clone())
                 .owner_of(&deps.querier, token.token_id.to_string(), false)?
                 .owner
@@ -79,7 +79,8 @@ pub fn execute_create_offer(
     }
     let params = SUDO_PARAMS.load(deps.storage)?;
     // check if the expiry date is valid
-    let expires = expires_at.unwrap_or(env.block.time.plus_seconds(params.offer_expiry.min + 1));
+    let expires =
+        expires_at.unwrap_or_else(|| env.block.time.plus_seconds(params.offer_expiry.min + 1));
     params
         .offer_expiry
         .is_valid(&env.block, env.block.time, expires)?;
@@ -90,7 +91,7 @@ pub fn execute_create_offer(
         offered_nfts: offered_tokens,
         wanted_nfts: wanted_tokens,
         sender: info.sender,
-        peer: peer,
+        peer,
         expires_at: expires,
         created_at: env.block.time,
     };
@@ -190,11 +191,7 @@ pub fn execute_accept_offer(
 
     // transfer nfts
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
-    transfer_nfts(
-        offer.sender.to_string(),
-        offer.wanted_nfts.clone(),
-        &mut res,
-    )?;
+    transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
 
     Ok(res.add_attribute("action", "accept_offer"))
 }
@@ -204,7 +201,7 @@ pub fn transfer_nfts(
     nfts: Vec<Token>,
     res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>,
 ) -> Result<(), ContractError> {
-    Ok(for token in nfts {
+    for token in nfts {
         let cw721_transfer_msg = Cw721ExecuteMsg::TransferNft {
             recipient: recipient.clone(),
             token_id: token.token_id.to_string(),
@@ -216,7 +213,8 @@ pub fn transfer_nfts(
         };
 
         res.messages.push(SubMsg::new(exec_cw721_transfer_msg));
-    })
+    }
+    Ok(())
 }
 
 pub fn execute_reject_offer(

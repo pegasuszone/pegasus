@@ -124,7 +124,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
         return Err(StdError::generic_err("Can only upgrade from same type").into());
     }
     // note: better to do proper semver compare, but string compare *usually* works
-    if ver.version >= CONTRACT_VERSION.to_string() {
+    if *ver.version >= *CONTRACT_VERSION {
         return Err(StdError::generic_err("Cannot upgrade from a newer version").into());
     }
 

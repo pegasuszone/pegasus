@@ -26,7 +26,7 @@ pub fn sudo_update_params(
 
     let mut params = SUDO_PARAMS.load(deps.storage)?;
 
-    params.escrow_deposit_amount = escrow_deposit_amount.unwrap_or(Uint128::zero());
+    params.escrow_deposit_amount = escrow_deposit_amount.unwrap_or_else(Uint128::zero);
 
     if let Some(offer_expiry) = offer_expiry {
         params.offer_expiry = offer_expiry;
