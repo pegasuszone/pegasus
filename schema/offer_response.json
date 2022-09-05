@@ -23,6 +23,7 @@
       "description": "Represents an ask on the marketplace",
       "type": "object",
       "required": [
+        "created_at",
         "expires_at",
         "id",
         "offered_nfts",
@@ -31,6 +32,9 @@
         "wanted_nfts"
       ],
       "properties": {
+        "created_at": {
+          "$ref": "#/definitions/Timestamp"
+        },
         "expires_at": {
           "$ref": "#/definitions/Timestamp"
         },
