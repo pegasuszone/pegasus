@@ -1,4 +1,3 @@
-use crate::ExpiryRangeError;
 use crate::error::ContractError;
 use crate::execute::{
     execute_accept_offer, execute_create_offer, execute_reject_offer, execute_remove_offer,
@@ -8,6 +7,7 @@ use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg, TokenMsg};
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender};
 use crate::state::{SudoParams, Token, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
+use crate::ExpiryRangeError;
 
 // use crate::query::{query_offers_by_sender};
 
@@ -22,8 +22,8 @@ use sg_std::Response;
 // Version info for migration info
 const CONTRACT_NAME: &str = "crates.iosg-p2p-nft-trade";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const MIN_EXPIRY: u64 = 3600*24; // seconds -> one day
-const MAX_EXPIRY: u64 = 3600*24*28; // seconds -> one month
+const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
+const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -35,10 +35,14 @@ pub fn instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     if msg.offer_expiry.min < MIN_EXPIRY {
-        return Err(ContractError::ExpiryRange(ExpiryRangeError::InvalidExpirationRange {  }))
+        return Err(ContractError::ExpiryRange(
+            ExpiryRangeError::InvalidExpirationRange {},
+        ));
     }
     if msg.offer_expiry.max > MAX_EXPIRY {
-        return Err(ContractError::ExpiryRange(ExpiryRangeError::InvalidExpirationRange {  }))
+        return Err(ContractError::ExpiryRange(
+            ExpiryRangeError::InvalidExpirationRange {},
+        ));
     }
 
     let params = SudoParams {
@@ -120,7 +124,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
         return Err(StdError::generic_err("Can only upgrade from same type").into());
     }
     // note: better to do proper semver compare, but string compare *usually* works
-    if ver.version >= CONTRACT_VERSION.to_string() {
+    if *ver.version >= *CONTRACT_VERSION {
         return Err(StdError::generic_err("Cannot upgrade from a newer version").into());
     }
 

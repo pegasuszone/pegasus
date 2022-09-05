@@ -21,8 +21,8 @@ const TOKEN2_ID: u32 = 234;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 60;
-const MIN_EXPIRY: u64 = 60;
+const MAX_EXPIRY: u64 = 604800;
+const MIN_EXPIRY: u64 = 86400;
 
 //---------------------------------------------------------
 // Unit tests without Cw721Queries
@@ -170,7 +170,8 @@ fn save_new_offer(
         wanted_nfts: wanted_nfts,
         sender: sender,
         peer: peer,
-        expires_at: Timestamp::from_seconds(1_000_000),
+        expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
+        created_at: mock_env().block.time,
     };
     let res = offers().save(deps.storage, &[offer.id], &offer);
     assert!(res.is_ok(), "Failed to save offer to storage");

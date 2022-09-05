@@ -23,10 +23,10 @@ pub fn execute_create_offer(
     }
 
     if offered_tokens.is_empty() {
-        return Err(ContractError::EmptyTokenVector {  })
+        return Err(ContractError::EmptyTokenVector {});
     }
     if wanted_tokens.is_empty() {
-        return Err(ContractError::EmptyTokenVector {  })
+        return Err(ContractError::EmptyTokenVector {});
     }
 
     // check if the sender is the owner of the tokens
@@ -65,7 +65,7 @@ pub fn execute_create_offer(
 
     // check if the peer is the owner of the requested tokens
     for token in wanted_tokens.clone() {
-        if peer.to_string()
+        if peer
             != Cw721Contract(token.collection.clone())
                 .owner_of(&deps.querier, token.token_id.to_string(), false)?
                 .owner
@@ -79,8 +79,11 @@ pub fn execute_create_offer(
     }
     let params = SUDO_PARAMS.load(deps.storage)?;
     // check if the expiry date is valid
-    let expires = expires_at.unwrap_or(env.block.time.plus_seconds(params.offer_expiry.min + 1));
-    params.offer_expiry.is_valid(&env.block, expires)?;
+    let expires =
+        expires_at.unwrap_or_else(|| env.block.time.plus_seconds(params.offer_expiry.min + 1));
+    params
+        .offer_expiry
+        .is_valid(&env.block, env.block.time, expires)?;
 
     // create and save offer
     let offer = Offer {
@@ -88,8 +91,9 @@ pub fn execute_create_offer(
         offered_nfts: offered_tokens,
         wanted_nfts: wanted_tokens,
         sender: info.sender,
-        peer: peer,
+        peer,
         expires_at: expires,
+        created_at: env.block.time,
     };
     offers().save(deps.storage, &[offer.id], &offer)?;
 
@@ -111,7 +115,7 @@ pub fn execute_remove_offer(
 
     offers().remove(deps.storage, &[offer.id])?;
 
-    // TODO: Remove approvals 
+    // TODO: Remove approvals
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
@@ -134,7 +138,9 @@ pub fn execute_accept_offer(
     }
 
     // check if the offer is not yet expired
-    params.offer_expiry.is_valid(&env.block, offer.expires_at)?;
+    params
+        .offer_expiry
+        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     // check if the sender owns the requested nfts
     for token in offer.wanted_nfts.clone() {
@@ -185,11 +191,7 @@ pub fn execute_accept_offer(
 
     // transfer nfts
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
-    transfer_nfts(
-        offer.sender.to_string(),
-        offer.wanted_nfts.clone(),
-        &mut res,
-    )?;
+    transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
 
     Ok(res.add_attribute("action", "accept_offer"))
 }
@@ -199,7 +201,7 @@ pub fn transfer_nfts(
     nfts: Vec<Token>,
     res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>,
 ) -> Result<(), ContractError> {
-    Ok(for token in nfts {
+    for token in nfts {
         let cw721_transfer_msg = Cw721ExecuteMsg::TransferNft {
             recipient: recipient.clone(),
             token_id: token.token_id.to_string(),
@@ -211,7 +213,8 @@ pub fn transfer_nfts(
         };
 
         res.messages.push(SubMsg::new(exec_cw721_transfer_msg));
-    })
+    }
+    Ok(())
 }
 
 pub fn execute_reject_offer(
@@ -224,7 +227,7 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
-    // TODO: Remove approvals 
+    // TODO: Remove approvals
 
     offers().remove(deps.storage, &[offer.id])?;
 
@@ -243,7 +246,9 @@ pub fn execute_remove_stale_offer(
 
     let params = SUDO_PARAMS.load(deps.storage)?;
 
-    params.offer_expiry.is_valid(&env.block, offer.expires_at)?;
+    params
+        .offer_expiry
+        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     if info.sender != params.maintainer {
         return Err(ContractError::UnauthorizedOperator {});
