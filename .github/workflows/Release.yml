@@ -9,8 +9,7 @@ jobs:
     name: Release wasm32-unknown-unknown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        name: Optimize workspace
+      - name: Optimize workspace
         run: |
           docker run --rm -v "$(pwd)":/code --platform linux/amd64 \
             --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
