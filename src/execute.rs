@@ -35,7 +35,7 @@ pub fn execute_create_offer(
     // Return an error if the amount of offers by this user + 1 exceeds the limit of active offers
     if (offers_from_sender.offers.len() as u64) + 1 > params.max_offers {
         return Err(ContractError::MaxOffers {
-            addr: info.sender.clone().to_string(),
+            addr: info.sender.to_string(),
             max_offers: params.max_offers,
         });
     }
