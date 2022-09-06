@@ -22,6 +22,9 @@ pub struct InstantiateMsg {
 
     /// Stale trade removal reward
     pub removal_reward_bps: u64,
+
+    /// Maximum amount of offers that can be sent by a user
+    pub max_offers: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -60,6 +63,7 @@ pub enum SudoMsg {
         offer_expiry: Option<ExpiryRange>,
         maintainer: Option<String>,
         removal_reward_bps: Option<u64>,
+        max_offers: Option<u64>,
     },
 }
 

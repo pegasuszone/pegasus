@@ -29,6 +29,17 @@ pub fn execute_create_offer(
         return Err(ContractError::EmptyTokenVector {});
     }
 
+    let offers_from_sender = query_offers_by_sender(deps.as_ref(), info.sender.clone())?;
+    let params = SUDO_PARAMS.load(deps.storage)?;
+
+    // Return an error if the amount of offers by this user + 1 exceeds the limit of active offers
+    if (offers_from_sender.offers.len() as u64) + 1 > params.max_offers {
+        return Err(ContractError::MaxOffers {
+            addr: info.sender.to_string(),
+            max_offers: params.max_offers,
+        });
+    }
+
     // check if the sender is the owner of the tokens
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.

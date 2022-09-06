@@ -20,6 +20,9 @@ pub struct SudoParams {
 
     /// Stale trade removal reward, // TODO: This in not implemented yet
     pub removal_reward_bps: u64,
+
+    /// Maximum amount of offers a user can send
+    pub max_offers: u64,
 }
 
 pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");

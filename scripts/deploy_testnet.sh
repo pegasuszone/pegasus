@@ -3,7 +3,7 @@
 
 # View your keys with `starsd keys list`
 
-export CONTRACT_NAME=sg_p2p_nft_trade;
+export CONTRACT_NAME=pegasus;
 export KEY_NAME=admin;
 
 export WALLET_DATA=$(starsd keys show $KEY_NAME --output json | jq .);
@@ -16,7 +16,7 @@ echo "\nConnected to wallet '$KEY_NAME'<$KEY_TYPE> @ $KEY_ADDRESS";
 echo "\n========\n";
 
 # Instantiate message config
-export INSTANTIATE_MSG="{\"escrow_deposit_amount\": \"0\", \"offer_expiry\": {\"min\":86400,\"max\":604800}, \"maintainer\": \"$KEY_ADDRESS\", \"removal_reward_bps\": 0}";
+export INSTANTIATE_MSG="{\"escrow_deposit_amount\": \"0\", \"offer_expiry\": {\"min\":86400,\"max\":604800}, \"maintainer\": \"$KEY_ADDRESS\", \"removal_reward_bps\": 0, \"max_offers\": 16}";
 echo $INSTANTIATE_MSG;
 
 ## INIT ##

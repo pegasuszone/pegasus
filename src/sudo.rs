@@ -9,6 +9,7 @@ pub struct ParamInfo {
     pub offer_expiry: Option<ExpiryRange>,
     pub maintainer: Option<String>,
     pub removal_reward_bps: Option<u64>,
+    pub max_offers: Option<u64>,
 }
 
 /// Only governance can update contract params
@@ -22,6 +23,7 @@ pub fn sudo_update_params(
         offer_expiry,
         maintainer,
         removal_reward_bps,
+        max_offers,
     } = param_info;
 
     let mut params = SUDO_PARAMS.load(deps.storage)?;
@@ -39,6 +41,10 @@ pub fn sudo_update_params(
         params.removal_reward_bps = removal_reward_bps
         // .map(Decimal::percent)
         // .unwrap_or(params.bid_removal_reward_percent);
+    }
+
+    if let Some(max_offers) = max_offers {
+        params.max_offers = max_offers
     }
 
     SUDO_PARAMS.save(deps.storage, &params)?;

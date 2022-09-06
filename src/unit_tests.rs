@@ -87,7 +87,7 @@ fn remove_offer() {
     assert_eq!(
         err,
         ContractError::Std(StdError::NotFound {
-            kind: "sg_p2p_nft_trade::state::Offer".to_string()
+            kind: "pegasus::state::Offer".to_string()
         }),
         "Error should be of type notFound."
     )
@@ -143,7 +143,7 @@ fn reject_offer() {
     assert_eq!(
         err,
         ContractError::Std(StdError::NotFound {
-            kind: "sg_p2p_nft_trade::state::Offer".to_string()
+            kind: "pegasus::state::Offer".to_string()
         }),
         "Error should be of type notFound."
     )
@@ -187,6 +187,7 @@ fn instantiate_trade_contract(deps: DepsMut) {
         },
         maintainer: CREATOR.to_owned(),
         removal_reward_bps: 0,
+        max_offers: 16,
     };
     let info = mock_info(CREATOR, &[]);
     let res = instantiate(deps, mock_env(), info, msg).unwrap();

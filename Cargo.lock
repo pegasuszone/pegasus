@@ -491,6 +491,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
+name = "pegasus"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cosmwasm-storage",
+ "cw-multi-test",
+ "cw-storage-plus",
+ "cw-utils",
+ "cw2",
+ "cw20",
+ "cw721",
+ "cw721-base",
+ "schemars",
+ "serde",
+ "sg-controllers",
+ "sg-multi-test",
+ "sg-std",
+ "sg1 0.14.0",
+ "sg721",
+ "thiserror",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -697,30 +721,6 @@ dependencies = [
  "schemars",
  "serde",
  "sg-std",
-]
-
-[[package]]
-name = "sg-p2p-nft-trade"
-version = "0.1.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-multi-test",
- "cw-storage-plus",
- "cw-utils",
- "cw2",
- "cw20",
- "cw721",
- "cw721-base",
- "schemars",
- "serde",
- "sg-controllers",
- "sg-multi-test",
- "sg-std",
- "sg1 0.14.0",
- "sg721",
- "thiserror",
 ]
 
 [[package]]

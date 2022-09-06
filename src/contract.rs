@@ -20,7 +20,7 @@ use cw2::set_contract_version;
 use sg_std::Response;
 
 // Version info for migration info
-const CONTRACT_NAME: &str = "crates.iosg-p2p-nft-trade";
+const CONTRACT_NAME: &str = "crates.io:pegasus";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
 const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
@@ -50,6 +50,7 @@ pub fn instantiate(
         offer_expiry: msg.offer_expiry,
         maintainer: deps.api.addr_validate(&msg.maintainer)?,
         removal_reward_bps: msg.removal_reward_bps,
+        max_offers: msg.max_offers,
     };
     SUDO_PARAMS.save(deps.storage, &params)?;
 
@@ -146,14 +147,16 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
             offer_expiry,
             maintainer,
             removal_reward_bps,
+            max_offers,
         } => sudo_update_params(
             deps,
             env,
             ParamInfo {
                 escrow_deposit_amount,
                 offer_expiry,
-                removal_reward_bps,
                 maintainer,
+                removal_reward_bps,
+                max_offers,
             },
         ),
     }
