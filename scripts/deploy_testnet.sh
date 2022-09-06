@@ -1,20 +1,12 @@
 # Contract deploy script
-# Run it like this: `zsh ./scripts/deploy_testnet.sh.sh`
+# Run it like this: `zsh ./scripts/deploy_testnet.sh`
 
 # View your keys with `starsd keys list`
 
-# notice oak worry limit wrap speak medal online prefer cluster roof addict wrist behave treat actual wasp year salad speed social layer crew genius
-
 export CONTRACT_NAME=sg_p2p_nft_trade;
+export KEY_NAME=admin;
 
-# If stargaze-testnet already exists, remove it. We're creating a new one.
-if [[ $(starsd keys list -n) == *"stargaze-testnet"* ]] then
-  starsd keys delete stargaze-testnet -y;
-fi
-
-starsd keys add stargaze-testnet --recover;
-export WALLET_DATA=$(starsd keys show stargaze-testnet --output json | jq .);
-
+export WALLET_DATA=$(starsd keys show $KEY_NAME --output json | jq .);
 
 export KEY_NAME=$(echo $WALLET_DATA | jq -r '.name');
 export KEY_TYPE=$(echo $WALLET_DATA | jq -r '.type');
