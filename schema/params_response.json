@@ -39,6 +39,7 @@
       "required": [
         "escrow_deposit_amount",
         "maintainer",
+        "max_offers",
         "offer_expiry",
         "removal_reward_bps"
       ],
@@ -58,6 +59,12 @@
               "$ref": "#/definitions/Addr"
             }
           ]
+        },
+        "max_offers": {
+          "description": "Maximum amount of offers a user can send",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
         },
         "offer_expiry": {
           "description": "Valid time range for Offers (min, max) in seconds",
