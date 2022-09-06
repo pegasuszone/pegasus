@@ -1,7 +1,6 @@
 on:
   release:
     types: [created]
-  workflow_dispatch:
 
 name: Release
 
@@ -11,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Optimize workspace
+        name: Optimize workspace
         run: |
           docker run --rm -v "$(pwd)":/code --platform linux/amd64 \
             --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
             --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
             cosmwasm/workspace-optimizer:0.12.6
       - uses: actions/upload-artifact@v3
-      - name: Upload artifacts
+        name: Upload artifacts
         with:
           name: pegasus
           path: artifacts/
