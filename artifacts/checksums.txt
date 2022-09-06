@@ -1,1 +1,1 @@
-f9ed73612f4a34700b78f672a610b9c7c1ee2cd86143b043354942318b62bdd4  sg_p2p_nft_trade-aarch64.wasm
+5c70f40d9eeccfb0e9ab0b272059300f9ed061fe28efc299ef51ffb7a4668575  pegasus-aarch64.wasm
