@@ -71,6 +71,7 @@ fn setup_contracts(
         },
         maintainer: CREATOR.to_string(),
         removal_reward_bps: 0,
+        max_offers: 16,
     };
     let p2p_trade = router
         .instantiate_contract(

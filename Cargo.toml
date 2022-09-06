@@ -1,6 +1,6 @@
 [package]
-name = "sg-p2p-nft-trade"
-version = "0.1.0"
+name = "pegasus"
+version = "1.0.0"
 authors = [
   "Maurits Bos <mb.brains@gmail.com>",
   "Josef Leventon <josef.leventon@gmail.com>",

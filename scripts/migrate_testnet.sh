@@ -3,7 +3,7 @@
 
 # View your keys with `starsd keys list`
 
-export CONTRACT_NAME=sg_p2p_nft_trade;
+export CONTRACT_NAME=pegasus;
 export KEY_NAME=admin;
 
 export WALLET_DATA=$(starsd keys show $KEY_NAME --output json | jq .);
