@@ -38,7 +38,8 @@ pub fn contract_p2p_trade() -> Box<dyn Contract<StargazeMsgWrapper>> {
         crate::contract::instantiate,
         crate::contract::query,
     )
-    .with_sudo(crate::contract::sudo);
+    .with_sudo(crate::contract::sudo) as dyn Contract<StargazeMsgWrapper>;
+    // let contract: =
     Box::new(contract)
 }
 

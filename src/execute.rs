@@ -3,10 +3,10 @@ use crate::query::query_offers_by_sender;
 use crate::state::{next_offer_id, offers, Offer, Token, SUDO_PARAMS};
 // use crate::query::{query_offers_by_sender};
 
-use cosmwasm_std::{to_binary, Addr, Deps, DepsMut, Env, MessageInfo, SubMsg, Timestamp, WasmMsg};
-use cw721::{Cw721ExecuteMsg, OwnerOfResponse};
+use cosmwasm_std::{to_binary, Addr, Deps, DepsMut, Env, MessageInfo, SubMsg, Timestamp, WasmMsg, Response};
+use cw721::{Cw721ExecuteMsg, OwnerOfResponse, CustomMsg};
 use cw721_base::helpers::Cw721Contract;
-use sg_std::Response;
+// use sg_std::Response;
 
 pub fn execute_create_offer(
     deps: DepsMut,
@@ -210,7 +210,8 @@ pub fn execute_accept_offer(
 pub fn transfer_nfts(
     recipient: String,
     nfts: Vec<Token>,
-    res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>,
+    // res: &mut cosmwasm_std::Response<sg_std::StargazeMsgWrapper>,
+    res: &mut cosmwasm_std::Response,
 ) -> Result<(), ContractError> {
     for token in nfts {
         let cw721_transfer_msg = Cw721ExecuteMsg::TransferNft {

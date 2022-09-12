@@ -14,10 +14,10 @@ use crate::ExpiryRangeError;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, StdError, StdResult,
+    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, StdError, StdResult, Response
 };
 use cw2::set_contract_version;
-use sg_std::Response;
+// use sg_std::Response;
 
 // Version info for migration info
 const CONTRACT_NAME: &str = "crates.io:pegasus";
