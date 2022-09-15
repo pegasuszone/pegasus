@@ -49,6 +49,7 @@ pub fn instantiate(
         escrow_deposit_amount: msg.escrow_deposit_amount,
         offer_expiry: msg.offer_expiry,
         maintainer: deps.api.addr_validate(&msg.maintainer)?,
+        // TODO: validate this is a valid bps
         removal_reward_bps: msg.removal_reward_bps,
         max_offers: msg.max_offers,
     };
@@ -65,6 +66,9 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     let api = deps.api;
+
+    // FIXME: cannot use .unwrap() here, contract will panic
+    // TODO: move all validation logic into the execute functions
 
     match msg {
         ExecuteMsg::CreateOffer {
@@ -117,6 +121,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
+// TODO: check if migration works.. probably not needed now
 #[entry_point]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, ContractError> {
     let ver = cw2::get_contract_version(deps.storage)?;
@@ -125,6 +130,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
         return Err(StdError::generic_err("Can only upgrade from same type").into());
     }
     // note: better to do proper semver compare, but string compare *usually* works
+    // FIXME: cannot compare strings like this, use semver library
     if *ver.version >= *CONTRACT_VERSION {
         return Err(StdError::generic_err("Cannot upgrade from a newer version").into());
     }
@@ -139,8 +145,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
-    // let api = deps.api;
-
     match msg {
         SudoMsg::UpdateParams {
             escrow_deposit_amount,

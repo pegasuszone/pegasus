@@ -8,6 +8,8 @@ use cw721::{Cw721ExecuteMsg, OwnerOfResponse};
 use cw721_base::helpers::Cw721Contract;
 use sg_std::Response;
 
+// TODO: there should be a fee for creating an offer, or it should be a contract that consumes gas.
+
 pub fn execute_create_offer(
     deps: DepsMut,
     env: Env,
@@ -29,6 +31,8 @@ pub fn execute_create_offer(
         return Err(ContractError::EmptyTokenVector {});
     }
 
+    // TODO: need a max limit per NFT bundle (5-10?)
+
     let offers_from_sender = query_offers_by_sender(deps.as_ref(), info.sender.clone())?;
     let params = SUDO_PARAMS.load(deps.storage)?;
 
@@ -44,8 +48,14 @@ pub fn execute_create_offer(
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.
     for token in offered_tokens.clone() {
+        // TODO: don't need both to check owner and do an approval, because if the approval works, then you are already the owner
+        // Maybe only check only_owner..
+
         // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
-        let _ = only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
+        only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
+
+        // TODO: this approval check should happen on transfer, not on create offer
+        // needs to happen before final execution
 
         // check if the contract is approved to send transfer the tokens
         Cw721Contract(token.collection.clone())
@@ -60,6 +70,7 @@ pub fn execute_create_offer(
                 token_id: token.token_id,
             })?;
 
+        // TODO: already getting offers above, can just reuse that
         // check if the tokens arent already offered in another trade
         let current_sender_offers =
             query_offers_by_sender(deps.as_ref(), info.sender.clone())?.offers;
@@ -185,6 +196,8 @@ pub fn execute_accept_offer(
             });
         }
 
+        // TODO: No need to check approvals since they are checked during transfer anyway...
+
         // check if the contract is approved to send transfer the tokens
         Cw721Contract(token.collection.clone())
             .approval(
@@ -193,7 +206,7 @@ pub fn execute_accept_offer(
                 env.contract.address.to_string(),
                 None,
             )
-            .map_err(|_| ContractError::UnauthorizedOperator {})?;
+            .map_err(|_| ContractError::UnauthorizedOperator {})?; // TODO: InvalidApproval or some other error
     }
     let mut res = Response::new();
 
@@ -203,6 +216,8 @@ pub fn execute_accept_offer(
     // transfer nfts
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
     transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
+
+    // TODO: add more attributes for indexing
 
     Ok(res.add_attribute("action", "accept_offer"))
 }
@@ -238,7 +253,7 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
-    // TODO: Remove approvals
+    // TODO: Remove approvals -- this could also happen in the UI on the frontend
 
     offers().remove(deps.storage, &[offer.id])?;
 
@@ -253,17 +268,16 @@ pub fn execute_remove_stale_offer(
     info: MessageInfo,
     id: u8,
 ) -> Result<Response, ContractError> {
-    let offer = offers().load(deps.storage, &[id])?;
-
     let params = SUDO_PARAMS.load(deps.storage)?;
+    if info.sender != params.maintainer {
+        return Err(ContractError::UnauthorizedOperator {});
+    }
+
+    let offer = offers().load(deps.storage, &[id])?;
 
     params
         .offer_expiry
         .is_valid(&env.block, offer.created_at, offer.expires_at)?;
-
-    if info.sender != params.maintainer {
-        return Err(ContractError::UnauthorizedOperator {});
-    }
 
     offers().remove(deps.storage, &[id])?;
 

@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::helpers::ExpiryRange;
 
+// TODO: Nothing is done w/ the deposit amount
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
     /// Amount in micros to be deposited by the sender of an offer
@@ -40,6 +42,7 @@ pub struct Token {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Offer {
     /// Unique identifier
+    // TODO: too small, just use u64
     pub id: u8,
 
     /// Arrays of offered & wanted NFTs, both defined by the sender
@@ -62,6 +65,8 @@ pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u8> {
 
     Ok(id)
 }
+
+// TODO: this could probably be just a Map
 
 pub const OFFER_NAMESPACE: &str = "offers";
 pub struct OfferIndexes<'a> {

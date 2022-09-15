@@ -44,6 +44,7 @@ pub enum ExecuteMsg {
         expires_at: Option<Timestamp>,
     },
     /// Remove an offer (called by sender)
+    // TODO: why not u64?
     RemoveOffer { id: u8 },
     /// Accept an existing offer (called by peer)
     AcceptOffer { id: u8 },
