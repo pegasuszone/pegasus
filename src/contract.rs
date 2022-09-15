@@ -51,6 +51,7 @@ pub fn instantiate(
         maintainer: deps.api.addr_validate(&msg.maintainer)?,
         removal_reward_bps: msg.removal_reward_bps,
         max_offers: msg.max_offers,
+        bundle_limit: msg.bundle_limit,
     };
     SUDO_PARAMS.save(deps.storage, &params)?;
 
@@ -148,6 +149,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
             maintainer,
             removal_reward_bps,
             max_offers,
+            bundle_limit
         } => sudo_update_params(
             deps,
             env,
@@ -157,6 +159,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
                 maintainer,
                 removal_reward_bps,
                 max_offers,
+                bundle_limit
             },
         ),
     }

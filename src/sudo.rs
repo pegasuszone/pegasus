@@ -10,6 +10,7 @@ pub struct ParamInfo {
     pub maintainer: Option<String>,
     pub removal_reward_bps: Option<u64>,
     pub max_offers: Option<u64>,
+    pub bundle_limit: Option<u64>
 }
 
 /// Only governance can update contract params
@@ -24,6 +25,7 @@ pub fn sudo_update_params(
         maintainer,
         removal_reward_bps,
         max_offers,
+        bundle_limit,
     } = param_info;
 
     let mut params = SUDO_PARAMS.load(deps.storage)?;
@@ -45,6 +47,10 @@ pub fn sudo_update_params(
 
     if let Some(max_offers) = max_offers {
         params.max_offers = max_offers
+    }
+
+    if let Some(bundle_limit) = bundle_limit {
+        params.bundle_limit = bundle_limit
     }
 
     SUDO_PARAMS.save(deps.storage, &params)?;

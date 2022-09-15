@@ -188,6 +188,7 @@ fn instantiate_trade_contract(deps: DepsMut) {
         maintainer: CREATOR.to_owned(),
         removal_reward_bps: 0,
         max_offers: 16,
+        bundle_limit: 5
     };
     let info = mock_info(CREATOR, &[]);
     let res = instantiate(deps, mock_env(), info, msg).unwrap();

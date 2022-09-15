@@ -38,8 +38,12 @@ pub enum ContractError {
 
     #[error("UnauthorizedOperator")]
     UnauthorizedOperator {},
+
     #[error("Address {addr:?} cannot create more than {max_offers:?} offers")]
     MaxOffers { addr: String, max_offers: u64 },
+
+    #[error("Bundle size cannot exceed {limit:?}")]
+    MaxBundle { limit: u64 },
 
     #[error("{0}")]
     ExpiryRange(#[from] ExpiryRangeError),

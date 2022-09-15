@@ -40,6 +40,15 @@ pub fn execute_create_offer(
         });
     }
 
+    // Return an error if the bundle size exceeds the bundle limit
+    if (offered_tokens.len() as u64) > params.bundle_limit
+        || (wanted_tokens.len() as u64) > params.bundle_limit
+    {
+        return Err(ContractError::MaxBundle {
+            limit: params.bundle_limit,
+        });
+    }
+
     // check if the sender is the owner of the tokens
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.

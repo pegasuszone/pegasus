@@ -25,6 +25,9 @@ pub struct InstantiateMsg {
 
     /// Maximum amount of offers that can be sent by a user
     pub max_offers: u64,
+
+    /// Maximum amount of NFTs in bundle
+    pub bundle_limit: u64
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -64,6 +67,7 @@ pub enum SudoMsg {
         maintainer: Option<String>,
         removal_reward_bps: Option<u64>,
         max_offers: Option<u64>,
+        bundle_limit: Option<u64>
     },
 }
 
