@@ -106,7 +106,7 @@ pub fn execute_create_offer(
         expires_at: expires,
         created_at: env.block.time,
     };
-    offers().save(deps.storage, &[offer.id], &offer)?;
+    offers().save(deps.storage, offer.id, &offer)?;
 
     Ok(Response::new()
         .add_attribute("action", "create_offer")
@@ -116,15 +116,15 @@ pub fn execute_create_offer(
 pub fn execute_remove_offer(
     deps: DepsMut,
     info: MessageInfo,
-    id: u8,
+    id: u64,
 ) -> Result<Response, ContractError> {
     // check if the sender of this msg is the sender of the offer
-    let offer = offers().load(deps.as_ref().storage, &[id])?;
+    let offer = offers().load(deps.as_ref().storage, id)?;
     if offer.sender != info.sender {
         return Err(ContractError::UnauthorizedSender {});
     }
 
-    offers().remove(deps.storage, &[offer.id])?;
+    offers().remove(deps.storage, offer.id)?;
 
     // TODO: Remove approvals
 
@@ -137,9 +137,9 @@ pub fn execute_accept_offer(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    id: u8,
+    id: u64,
 ) -> Result<Response, ContractError> {
-    let offer = offers().load(deps.storage, &[id])?;
+    let offer = offers().load(deps.storage, id)?;
 
     let params = SUDO_PARAMS.load(deps.storage)?;
 
@@ -198,7 +198,7 @@ pub fn execute_accept_offer(
     let mut res = Response::new();
 
     // remove the offer
-    offers().remove(deps.storage, &[offer.id])?;
+    offers().remove(deps.storage, offer.id)?;
 
     // transfer nfts
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
@@ -231,16 +231,16 @@ pub fn transfer_nfts(
 pub fn execute_reject_offer(
     deps: DepsMut,
     info: MessageInfo,
-    id: u8,
+    id: u64,
 ) -> Result<Response, ContractError> {
     // check if the sender of this msg is the peer of the offer
-    let offer = offers().load(deps.as_ref().storage, &[id])?;
+    let offer = offers().load(deps.as_ref().storage, id)?;
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
     // TODO: Remove approvals
 
-    offers().remove(deps.storage, &[offer.id])?;
+    offers().remove(deps.storage, offer.id)?;
 
     Ok(Response::new()
         .add_attribute("action", "reject_offer")
@@ -251,9 +251,9 @@ pub fn execute_remove_stale_offer(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    id: u8,
+    id: u64,
 ) -> Result<Response, ContractError> {
-    let offer = offers().load(deps.storage, &[id])?;
+    let offer = offers().load(deps.storage, id)?;
 
     let params = SUDO_PARAMS.load(deps.storage)?;
 
@@ -265,7 +265,7 @@ pub fn execute_remove_stale_offer(
         return Err(ContractError::UnauthorizedOperator {});
     }
 
-    offers().remove(deps.storage, &[id])?;
+    offers().remove(deps.storage, id)?;
 
     Ok(Response::new()
         .add_attribute("action", "remove_stale_offer")

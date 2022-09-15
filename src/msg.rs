@@ -44,13 +44,13 @@ pub enum ExecuteMsg {
         expires_at: Option<Timestamp>,
     },
     /// Remove an offer (called by sender)
-    RemoveOffer { id: u8 },
+    RemoveOffer { id: u64 },
     /// Accept an existing offer (called by peer)
-    AcceptOffer { id: u8 },
+    AcceptOffer { id: u64 },
     /// Reject an existing offer (called by peer)
-    RejectOffer { id: u8 },
+    RejectOffer { id: u64 },
     /// Operation to remove stale offers (called by anyone & incentivized)
-    RemoveStaleOffer { id: u8 },
+    RemoveStaleOffer { id: u64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -70,7 +70,7 @@ pub enum SudoMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Offer { id: u8 },
+    Offer { id: u64 },
     OffersBySender { sender: String },
     OffersByPeer { peer: String },
     Params {},

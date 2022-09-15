@@ -173,7 +173,7 @@ fn save_new_offer(
         expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
         created_at: mock_env().block.time,
     };
-    let res = offers().save(deps.storage, &[offer.id], &offer);
+    let res = offers().save(deps.storage, offer.id, &offer);
     assert!(res.is_ok(), "Failed to save offer to storage");
 }
 

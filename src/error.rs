@@ -24,7 +24,7 @@ pub enum ContractError {
     TokenAlreadyOffered {
         collection: String,
         token_id: u32,
-        offer_id: u8,
+        offer_id: u64,
     },
 
     #[error(
