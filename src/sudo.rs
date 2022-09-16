@@ -10,7 +10,7 @@ pub struct ParamInfo {
     pub maintainer: Option<String>,
     pub removal_reward_bps: Option<u64>,
     pub max_offers: Option<u64>,
-    pub bundle_limit: Option<u64>
+    pub bundle_limit: Option<u64>,
 }
 
 /// Only governance can update contract params

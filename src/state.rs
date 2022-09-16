@@ -25,7 +25,7 @@ pub struct SudoParams {
     pub max_offers: u64,
 
     /// Maximum amount of NFTs in bundle
-    pub bundle_limit: u64
+    pub bundle_limit: u64,
 }
 
 pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");
