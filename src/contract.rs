@@ -17,6 +17,7 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, StdError, StdResult,
 };
 use cw2::set_contract_version;
+use semver::Version;
 use sg_std::Response;
 
 // Version info for migration info
@@ -119,8 +120,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
     if ver.contract != CONTRACT_NAME {
         return Err(StdError::generic_err("Can only upgrade from same type").into());
     }
-    // note: better to do proper semver compare, but string compare *usually* works
-    if *ver.version >= *CONTRACT_VERSION {
+
+    // use semver
+    let version = Version::parse(&ver.version).unwrap();
+    let contract_version = Version::parse(CONTRACT_VERSION).unwrap();
+
+    if version.ge(&contract_version) {
         return Err(StdError::generic_err("Cannot upgrade from a newer version").into());
     }
 
