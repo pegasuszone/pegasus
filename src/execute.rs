@@ -59,7 +59,7 @@ pub fn execute_create_offer(
     // check if the sender is the owner of the tokens
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.
-    for token in offered_tokens.clone() {
+    for token in offered_tokens {
         // Verify token collection addr
         let collection = api.addr_validate(&token.collection)?;
 
@@ -99,7 +99,7 @@ pub fn execute_create_offer(
     }
 
     // check if the peer is the owner of the requested tokens
-    for token in wanted_tokens.clone() {
+    for token in wanted_tokens {
         // Verify token collection addr
         let collection = api.addr_validate(&token.collection)?;
 
@@ -133,8 +133,8 @@ pub fn execute_create_offer(
     // create and save offer
     let offer = Offer {
         id: next_offer_id(deps.storage)?,
-        offered_nfts: offered_nfts,
-        wanted_nfts: wanted_nfts,
+        offered_nfts,
+        wanted_nfts,
         sender: info.sender,
         peer,
         expires_at: expires,
