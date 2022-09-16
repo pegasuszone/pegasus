@@ -173,7 +173,7 @@ fn save_new_offer(
         expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
         created_at: mock_env().block.time,
     };
-    let res = offers().save(deps.storage, &[offer.id], &offer);
+    let res = offers().save(deps.storage, offer.id, &offer);
     assert!(res.is_ok(), "Failed to save offer to storage");
 }
 
@@ -188,6 +188,7 @@ fn instantiate_trade_contract(deps: DepsMut) {
         maintainer: CREATOR.to_owned(),
         removal_reward_bps: 0,
         max_offers: 16,
+        bundle_limit: 5,
     };
     let info = mock_info(CREATOR, &[]);
     let res = instantiate(deps, mock_env(), info, msg).unwrap();

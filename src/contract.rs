@@ -3,9 +3,9 @@ use crate::execute::{
     execute_accept_offer, execute_create_offer, execute_reject_offer, execute_remove_offer,
     execute_remove_stale_offer,
 };
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg, TokenMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender};
-use crate::state::{SudoParams, Token, SUDO_PARAMS};
+use crate::state::{SudoParams, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
 use crate::ExpiryRangeError;
 
@@ -17,6 +17,7 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, StdError, StdResult,
 };
 use cw2::set_contract_version;
+use semver::Version;
 use sg_std::Response;
 
 // Version info for migration info
@@ -45,12 +46,19 @@ pub fn instantiate(
         ));
     }
 
+    if msg.offer_expiry.min >= msg.offer_expiry.max {
+        return Err(ContractError::ExpiryRange(
+            ExpiryRangeError::InvalidExpirationRange {},
+        ));
+    }
+
     let params = SudoParams {
         escrow_deposit_amount: msg.escrow_deposit_amount,
         offer_expiry: msg.offer_expiry,
         maintainer: deps.api.addr_validate(&msg.maintainer)?,
         removal_reward_bps: msg.removal_reward_bps,
         max_offers: msg.max_offers,
+        bundle_limit: msg.bundle_limit,
     };
     SUDO_PARAMS.save(deps.storage, &params)?;
 
@@ -76,20 +84,8 @@ pub fn execute(
             deps,
             env,
             info,
-            offered_nfts
-                .into_iter()
-                .map(|nft: TokenMsg| Token {
-                    collection: api.addr_validate(&nft.collection).unwrap(),
-                    token_id: nft.token_id,
-                })
-                .collect(),
-            wanted_nfts
-                .into_iter()
-                .map(|nft: TokenMsg| Token {
-                    collection: api.addr_validate(&nft.collection).unwrap(),
-                    token_id: nft.token_id,
-                })
-                .collect(),
+            offered_nfts,
+            wanted_nfts,
             api.addr_validate(&peer)?,
             expires_at,
         ),
@@ -124,8 +120,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, Contra
     if ver.contract != CONTRACT_NAME {
         return Err(StdError::generic_err("Can only upgrade from same type").into());
     }
-    // note: better to do proper semver compare, but string compare *usually* works
-    if *ver.version >= *CONTRACT_VERSION {
+
+    // use semver
+    let version = Version::parse(&ver.version).unwrap();
+    let contract_version = Version::parse(CONTRACT_VERSION).unwrap();
+
+    if version.ge(&contract_version) {
         return Err(StdError::generic_err("Cannot upgrade from a newer version").into());
     }
 
@@ -148,6 +148,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
             maintainer,
             removal_reward_bps,
             max_offers,
+            bundle_limit,
         } => sudo_update_params(
             deps,
             env,
@@ -157,6 +158,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
                 maintainer,
                 removal_reward_bps,
                 max_offers,
+                bundle_limit,
             },
         ),
     }

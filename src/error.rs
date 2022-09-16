@@ -11,6 +11,9 @@ pub enum ContractError {
     #[error("Can't create an offer without nfts")]
     EmptyTokenVector {},
 
+    #[error("Invalid collection address")]
+    InvalidCollection {},
+
     #[error("UnauthorizedOwner")]
     UnauthorizedSender {},
 
@@ -24,7 +27,7 @@ pub enum ContractError {
     TokenAlreadyOffered {
         collection: String,
         token_id: u32,
-        offer_id: u8,
+        offer_id: u64,
     },
 
     #[error(
@@ -38,8 +41,12 @@ pub enum ContractError {
 
     #[error("UnauthorizedOperator")]
     UnauthorizedOperator {},
+
     #[error("Address {addr:?} cannot create more than {max_offers:?} offers")]
     MaxOffers { addr: String, max_offers: u64 },
+
+    #[error("Bundle size cannot exceed {limit:?}")]
+    MaxBundle { limit: u64 },
 
     #[error("{0}")]
     ExpiryRange(#[from] ExpiryRangeError),

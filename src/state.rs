@@ -23,6 +23,9 @@ pub struct SudoParams {
 
     /// Maximum amount of offers a user can send
     pub max_offers: u64,
+
+    /// Maximum amount of NFTs in bundle
+    pub bundle_limit: u64,
 }
 
 pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");
@@ -40,7 +43,7 @@ pub struct Token {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Offer {
     /// Unique identifier
-    pub id: u8,
+    pub id: u64,
 
     /// Arrays of offered & wanted NFTs, both defined by the sender
     pub offered_nfts: Vec<Token>,
@@ -53,11 +56,11 @@ pub struct Offer {
 }
 
 // Incrementing ID counter
-pub const OFFER_ID_COUNTER: Item<u8> = Item::new("offer_id_counter");
+pub const OFFER_ID_COUNTER: Item<u64> = Item::new("offer_id_counter");
 
 // Get next incrementing ID
-pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u8> {
-    let id: u8 = OFFER_ID_COUNTER.may_load(store)?.unwrap_or_default() + 1;
+pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u64> {
+    let id: u64 = OFFER_ID_COUNTER.may_load(store)?.unwrap_or_default() + 1;
     OFFER_ID_COUNTER.save(store, &id)?;
 
     Ok(id)
@@ -65,7 +68,7 @@ pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u8> {
 
 pub const OFFER_NAMESPACE: &str = "offers";
 pub struct OfferIndexes<'a> {
-    pub id: UniqueIndex<'a, u8, Offer>,
+    pub id: UniqueIndex<'a, u64, Offer>,
 }
 impl<'a> IndexList<Offer> for OfferIndexes<'a> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Offer>> + '_> {
@@ -75,7 +78,7 @@ impl<'a> IndexList<Offer> for OfferIndexes<'a> {
 }
 
 // Function to get all offers and manipulate offer data
-pub fn offers<'a>() -> IndexedMap<'a, &'a [u8], Offer, OfferIndexes<'a>> {
+pub fn offers<'a>() -> IndexedMap<'a, u64, Offer, OfferIndexes<'a>> {
     let indexes = OfferIndexes {
         id: UniqueIndex::new(|d| d.id, "offer_id"),
     };

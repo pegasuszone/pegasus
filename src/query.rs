@@ -6,8 +6,8 @@ use cosmwasm_std::{Addr, Deps, Order, StdResult};
 // const DEFAULT_QUERY_LIMIT: u32 = 10;
 // const MAX_QUERY_LIMIT: u32 = 30;
 
-pub fn query_offer(deps: Deps, id: u8) -> StdResult<OfferResponse> {
-    let offer = offers().may_load(deps.storage, &[id])?;
+pub fn query_offer(deps: Deps, id: u64) -> StdResult<OfferResponse> {
+    let offer = offers().may_load(deps.storage, id)?;
     Ok(OfferResponse { offer })
 }
 
