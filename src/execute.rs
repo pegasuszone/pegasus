@@ -119,7 +119,9 @@ pub fn execute_create_offer(
 
     Ok(Response::new()
         .add_attribute("action", "create_offer")
-        .add_attribute("offer_id", offer.id.to_string()))
+        .add_attribute("offer_id", offer.id.to_string())
+        .add_attribute("offer_sender", offer.sender)
+        .add_attribute("offer_peer", offer.peer))
 }
 
 pub fn execute_remove_offer(
@@ -139,7 +141,9 @@ pub fn execute_remove_offer(
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
-        .add_attribute("offer_id", offer.id.to_string()))
+        .add_attribute("offer_id", offer.id.to_string())
+        .add_attribute("offer_sender", offer.sender)
+        .add_attribute("offer_peer", offer.peer))
 }
 
 pub fn execute_accept_offer(
@@ -213,7 +217,11 @@ pub fn execute_accept_offer(
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
     transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
 
-    Ok(res.add_attribute("action", "accept_offer"))
+    Ok(res
+        .add_attribute("action", "accept_offer")
+        .add_attribute("offer_id", offer.id.to_string())
+        .add_attribute("offer_sender", offer.sender)
+        .add_attribute("offer_peer", offer.peer))
 }
 
 pub fn transfer_nfts(
@@ -253,7 +261,9 @@ pub fn execute_reject_offer(
 
     Ok(Response::new()
         .add_attribute("action", "reject_offer")
-        .add_attribute("offer_id", offer.id.to_string()))
+        .add_attribute("offer_id", offer.id.to_string())
+        .add_attribute("offer_sender", offer.sender)
+        .add_attribute("offer_peer", offer.peer))
 }
 
 pub fn execute_remove_stale_offer(
@@ -278,7 +288,9 @@ pub fn execute_remove_stale_offer(
 
     Ok(Response::new()
         .add_attribute("action", "remove_stale_offer")
-        .add_attribute("offer_id", offer.id.to_string()))
+        .add_attribute("offer_id", offer.id.to_string())
+        .add_attribute("offer_sender", offer.sender)
+        .add_attribute("offer_peer", offer.peer))
 }
 
 // ---------------------------------------------------------------------------------
