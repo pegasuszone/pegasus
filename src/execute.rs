@@ -272,17 +272,17 @@ pub fn execute_remove_stale_offer(
     info: MessageInfo,
     id: u64,
 ) -> Result<Response, ContractError> {
-    let offer = offers().load(deps.storage, id)?;
-
     let params = SUDO_PARAMS.load(deps.storage)?;
-
-    params
-        .offer_expiry
-        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     if info.sender != params.maintainer {
         return Err(ContractError::UnauthorizedOperator {});
     }
+
+    let offer = offers().load(deps.storage, id)?;
+
+    params
+        .offer_expiry
+        .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
     offers().remove(deps.storage, id)?;
 
