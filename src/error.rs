@@ -11,6 +11,9 @@ pub enum ContractError {
     #[error("Can't create an offer without nfts")]
     EmptyTokenVector {},
 
+    #[error("Invalid collection address")]
+    InvalidCollection {},
+
     #[error("UnauthorizedOwner")]
     UnauthorizedSender {},
 

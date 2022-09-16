@@ -1,4 +1,5 @@
 use crate::error::ContractError;
+use crate::msg::TokenMsg;
 use crate::query::query_offers_by_sender;
 use crate::state::{next_offer_id, offers, Offer, Token, SUDO_PARAMS};
 // use crate::query::{query_offers_by_sender};
@@ -12,8 +13,8 @@ pub fn execute_create_offer(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    offered_tokens: Vec<Token>,
-    wanted_tokens: Vec<Token>,
+    offered_tokens: Vec<TokenMsg>,
+    wanted_tokens: Vec<TokenMsg>,
     peer: Addr,
     expires_at: Option<Timestamp>,
 ) -> Result<Response, ContractError> {
@@ -32,6 +33,8 @@ pub fn execute_create_offer(
     let offers_from_sender = query_offers_by_sender(deps.as_ref(), info.sender.clone())?;
     let params = SUDO_PARAMS.load(deps.storage)?;
 
+    let api = deps.api;
+
     // Return an error if the amount of offers by this user + 1 exceeds the limit of active offers
     if (offers_from_sender.offers.len() as u64) + 1 > params.max_offers {
         return Err(ContractError::MaxOffers {
@@ -49,12 +52,26 @@ pub fn execute_create_offer(
         });
     }
 
+    // Store data we're fetching in the next 2 loops for performance
+    let mut offered_nfts: Vec<Token> = vec![];
+    let mut wanted_nfts: Vec<Token> = vec![];
+
     // check if the sender is the owner of the tokens
     // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
     //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.
     for token in offered_tokens.clone() {
+        // Verify token collection addr
+        let collection = api.addr_validate(&token.collection)?;
+
+        let token = Token {
+            collection,
+            token_id: token.token_id,
+        };
+
+        offered_nfts.push(token.clone());
+
         // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
-        let _ = only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
+        only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
 
         // check if the contract is approved to send transfer the tokens
         Cw721Contract(token.collection.clone())
@@ -83,6 +100,16 @@ pub fn execute_create_offer(
 
     // check if the peer is the owner of the requested tokens
     for token in wanted_tokens.clone() {
+        // Verify token collection addr
+        let collection = api.addr_validate(&token.collection)?;
+
+        let token = Token {
+            collection,
+            token_id: token.token_id,
+        };
+
+        wanted_nfts.push(token.clone());
+
         if peer
             != Cw721Contract(token.collection.clone())
                 .owner_of(&deps.querier, token.token_id.to_string(), false)?
@@ -106,8 +133,8 @@ pub fn execute_create_offer(
     // create and save offer
     let offer = Offer {
         id: next_offer_id(deps.storage)?,
-        offered_nfts: offered_tokens,
-        wanted_nfts: wanted_tokens,
+        offered_nfts: offered_nfts,
+        wanted_nfts: wanted_nfts,
         sender: info.sender,
         peer,
         expires_at: expires,
