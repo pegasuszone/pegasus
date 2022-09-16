@@ -70,9 +70,7 @@ pub fn execute_create_offer(
             })?;
 
         // check if the tokens arent already offered in another trade
-        let current_sender_offers =
-            query_offers_by_sender(deps.as_ref(), info.sender.clone())?.offers;
-        for offer in current_sender_offers {
+        for offer in offers_from_sender.clone().offers {
             if offer.offered_nfts.contains(&token) {
                 return Err(ContractError::TokenAlreadyOffered {
                     collection: token.collection.into_string(),
