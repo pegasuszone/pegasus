@@ -40,7 +40,7 @@
         "id": {
           "description": "Unique identifier",
           "type": "integer",
-          "format": "uint8",
+          "format": "uint64",
           "minimum": 0.0
         },
         "offered_nfts": {

@@ -37,6 +37,7 @@
     "SudoParams": {
       "type": "object",
       "required": [
+        "bundle_limit",
         "escrow_deposit_amount",
         "maintainer",
         "max_offers",
@@ -44,6 +45,12 @@
         "removal_reward_bps"
       ],
       "properties": {
+        "bundle_limit": {
+          "description": "Maximum amount of NFTs in bundle",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
         "escrow_deposit_amount": {
           "description": "Amount in micros to be deposited by the sender of an offer This escrow will be refunded when the offer is accepted or denied The sender will lose this deposit if they let the offer expire",
           "allOf": [
