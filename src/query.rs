@@ -13,9 +13,7 @@ pub fn query_offer(deps: Deps, id: u64) -> StdResult<OfferResponse> {
 
 pub fn query_params(deps: Deps) -> StdResult<ParamsResponse> {
     let params = SUDO_PARAMS.load(deps.storage)?;
-    Ok(ParamsResponse {
-        params,
-    })
+    Ok(ParamsResponse { params })
 }
 
 pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersResponse> {

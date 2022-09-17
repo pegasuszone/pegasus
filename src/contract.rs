@@ -107,7 +107,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::OffersByPeer { peer } => {
             to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?)
         }
-        QueryMsg::Params {} => to_binary(&query_params(deps)?)
+        QueryMsg::Params {} => to_binary(&query_params(deps)?),
     }
 }
 
