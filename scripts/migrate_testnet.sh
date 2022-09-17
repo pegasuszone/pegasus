@@ -4,6 +4,7 @@
 # View your keys with `starsd keys list`
 
 export CONTRACT_NAME=pegasus;
+export CONTRACT_ADDRESS=stars16jlpdfs658klz0maee8qee3ff7fq5h6sncng39xc5m527hnc84fqxw9wg2;
 export KEY_NAME=admin;
 
 export WALLET_DATA=$(starsd keys show $KEY_NAME --output json | jq .);
@@ -68,7 +69,7 @@ echo "CodeID found: $CODE_ID";
 # Instantiate the contract
 echo "\n========\n";
 echo "Instantiating contract...";
-starsd tx wasm migrate $CODE_ID "$MIGRATE_MSG" --from $KEY_NAME --label "$CONTRACT_NAME" $TXFLAG -y --no-admin;
+starsd tx wasm migrate "$CONTRACT_ADDRESS" $CODE_ID "$MIGRATE_MSG" --from $KEY_NAME --label "$CONTRACT_NAME" $TXFLAG -y --no-admin;
 echo "Contract migrated."
 
 # Store contract addr in $CONTRACT
