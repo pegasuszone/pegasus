@@ -53,10 +53,8 @@ pub fn instantiate(
     }
 
     let params = SudoParams {
-        escrow_deposit_amount: msg.escrow_deposit_amount,
         offer_expiry: msg.offer_expiry,
         maintainer: deps.api.addr_validate(&msg.maintainer)?,
-        removal_reward_bps: msg.removal_reward_bps,
         max_offers: msg.max_offers,
         bundle_limit: msg.bundle_limit,
     };
@@ -143,20 +141,16 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
 
     match msg {
         SudoMsg::UpdateParams {
-            escrow_deposit_amount,
             offer_expiry,
             maintainer,
-            removal_reward_bps,
             max_offers,
             bundle_limit,
         } => sudo_update_params(
             deps,
             env,
             ParamInfo {
-                escrow_deposit_amount,
                 offer_expiry,
                 maintainer,
-                removal_reward_bps,
                 max_offers,
                 bundle_limit,
             },

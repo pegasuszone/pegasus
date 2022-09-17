@@ -1,5 +1,5 @@
 #[cfg(test)]
-use cosmwasm_std::{coins, Addr, Coin, Empty, Timestamp, Uint128};
+use cosmwasm_std::{coins, Addr, Coin, Empty, Timestamp};
 use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
 use cw_utils::Expiration;
@@ -64,15 +64,13 @@ fn setup_contracts(
     // Instantiate marketplace contract
     let p2p_contract_id = router.store_code(contract_p2p_trade());
     let msg = crate::msg::InstantiateMsg {
-        escrow_deposit_amount: Uint128::new(0),
         offer_expiry: crate::ExpiryRange {
             min: MIN_EXPIRY,
             max: MAX_EXPIRY,
         },
         maintainer: CREATOR.to_string(),
-        removal_reward_bps: 0,
         max_offers: 16,
-        bundle_limit: 5,
+        bundle_limit: 3,
     };
     let p2p_trade = router
         .instantiate_contract(
@@ -261,7 +259,76 @@ fn create_offer() {
     mint_for(router, &creator, &creator, &collection_a, TOKEN3_ID);
     mint_for(router, &creator, &creator, &collection_a, TOKEN4_ID);
 
-    // TODO: Test for empty offered/wanted nft vector
+    //  ----- TestCase for empty offered/wanted nft vector ----
+    let exec_create_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
+
+    // empty offer is not allowed
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_msg,
+            &[],
+        )
+        .unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::EmptyTokenVector {}
+    );
+    // -----------
+
+    // ------ TESTCASE: Exceeds bundle limit ----------
+    let exec_create_msg = ExecuteMsg::CreateOffer {
+        offered_nfts: vec![
+            TokenMsg {
+                collection: collection_a.to_string(),
+                token_id: TOKEN1_ID,
+            },
+            TokenMsg {
+                collection: collection_a.to_string(),
+                token_id: TOKEN1_ID,
+            },
+            TokenMsg {
+                collection: collection_a.to_string(),
+                token_id: TOKEN1_ID,
+            },
+            TokenMsg {
+                collection: collection_a.to_string(),
+                token_id: TOKEN1_ID,
+            },
+        ],
+        wanted_nfts: vec![TokenMsg {
+            collection: collection_a.to_string(),
+            token_id: TOKEN2_ID,
+        }],
+        peer: peer.to_string(),
+        expires_at: None,
+    };
+
+    // sender should fail to create a offer if the nfts are not approved yet
+    let err = router
+        .execute_contract(
+            sender.clone(),
+            trade_contract.clone(),
+            &exec_create_msg,
+            &[],
+        )
+        .unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::MaxBundle { limit: 3 }
+    );
+    // ------------
+
+    // ------ TESTCASE: Non-approved NFT's ----------
     let exec_create_msg = ExecuteMsg::CreateOffer {
         offered_nfts: vec![TokenMsg {
             collection: collection_a.to_string(),
@@ -291,6 +358,7 @@ fn create_offer() {
             token_id: TOKEN1_ID
         }
     );
+    // ------------
 
     // Approves contract on the sender side
     approve(

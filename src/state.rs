@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdResult, Storage, Timestamp, Uint128};
+use cosmwasm_std::{Addr, StdResult, Storage, Timestamp};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, UniqueIndex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,19 +7,12 @@ use crate::helpers::ExpiryRange;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
-    /// Amount in micros to be deposited by the sender of an offer
-    /// This escrow will be refunded when the offer is accepted or denied
-    /// The sender will lose this deposit if they let the offer expire
-    pub escrow_deposit_amount: Uint128, // TODO: This in not implemented yet
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
 
     /// Developer address
     pub maintainer: Addr,
-
-    /// Stale trade removal reward, // TODO: This in not implemented yet
-    pub removal_reward_bps: u64,
 
     /// Maximum amount of offers a user can send
     pub max_offers: u64,

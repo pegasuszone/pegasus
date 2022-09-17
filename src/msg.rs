@@ -2,26 +2,18 @@ use crate::{
     helpers::ExpiryRange,
     state::{Offer, SudoParams},
 };
-use cosmwasm_std::{Timestamp, Uint128};
+use cosmwasm_std::Timestamp;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    /// Amount in micros to be deposited by the sender of an offer
-    /// This escrow will be refunded when the offer is accepted or denied
-    /// The sender will lose this deposit if they let the offer expire
-    pub escrow_deposit_amount: Uint128,
-
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
 
     /// Developer address
     pub maintainer: String,
-
-    /// Stale trade removal reward
-    pub removal_reward_bps: u64,
 
     /// Maximum amount of offers that can be sent by a user
     pub max_offers: u64,
@@ -62,10 +54,8 @@ pub enum SudoMsg {
     /// Update the contract parameters
     /// Can only be called by governance
     UpdateParams {
-        escrow_deposit_amount: Option<Uint128>,
         offer_expiry: Option<ExpiryRange>,
         maintainer: Option<String>,
-        removal_reward_bps: Option<u64>,
         max_offers: Option<u64>,
         bundle_limit: Option<u64>,
     },

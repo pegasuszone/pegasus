@@ -180,13 +180,11 @@ fn save_new_offer(
 // setup contract helper
 fn instantiate_trade_contract(deps: DepsMut) {
     let msg = InstantiateMsg {
-        escrow_deposit_amount: cosmwasm_std::Uint128::new(0),
         offer_expiry: ExpiryRange {
             min: MIN_EXPIRY,
             max: MAX_EXPIRY,
         },
         maintainer: CREATOR.to_owned(),
-        removal_reward_bps: 0,
         max_offers: 16,
         bundle_limit: 5,
     };
