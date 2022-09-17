@@ -19,7 +19,6 @@ pub fn execute_create_offer(
     expires_at: Option<Timestamp>,
 ) -> Result<Response, ContractError> {
     if info.sender == peer {
-        // TODO: This error needs refactor: Dont know how to describe this situation. SelfSend?
         return Err(ContractError::AlreadyOwned {});
     }
 
@@ -100,7 +99,6 @@ pub fn execute_create_offer(
 
         offered_nfts.push(token.clone());
 
-        // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
         only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
 
         // check if the contract is approved to send transfer the tokens
@@ -159,8 +157,6 @@ pub fn execute_remove_offer(
     }
 
     offers().remove(deps.storage, offer.id)?;
-
-    // TODO: Remove approvals
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
@@ -278,7 +274,6 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
-    // TODO: Remove approvals
 
     offers().remove(deps.storage, offer.id)?;
 

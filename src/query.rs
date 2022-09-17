@@ -1,5 +1,5 @@
-use crate::msg::{OfferResponse, OffersResponse};
-use crate::state::offers;
+use crate::msg::{OfferResponse, OffersResponse, ParamsResponse};
+use crate::state::{offers, SUDO_PARAMS};
 use cosmwasm_std::{Addr, Deps, Order, StdResult};
 
 // Query limits
@@ -11,7 +11,13 @@ pub fn query_offer(deps: Deps, id: u64) -> StdResult<OfferResponse> {
     Ok(OfferResponse { offer })
 }
 
-// TODO: Implement pagination
+pub fn query_params(deps: Deps) -> StdResult<ParamsResponse> {
+    let params = SUDO_PARAMS.load(deps.storage)?;
+    Ok(ParamsResponse {
+        params,
+    })
+}
+
 pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
@@ -27,7 +33,6 @@ pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersRespo
     Ok(OffersResponse { offers })
 }
 
-// TODO: Implement pagination
 pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx

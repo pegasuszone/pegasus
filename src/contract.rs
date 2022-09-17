@@ -4,7 +4,7 @@ use crate::execute::{
     execute_remove_stale_offer,
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
-use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender};
+use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender, query_params};
 use crate::state::{SudoParams, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
 use crate::ExpiryRangeError;
@@ -107,7 +107,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::OffersByPeer { peer } => {
             to_binary(&query_offers_by_peer(deps, api.addr_validate(&peer)?)?)
         }
-        QueryMsg::Params {} => todo!(),
+        QueryMsg::Params {} => to_binary(&query_params(deps)?)
     }
 }
 
