@@ -54,7 +54,7 @@ fi
 docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-cosmwasm/rust-optimizer$ARCH:0.12.6;
+cosmwasm/rust-optimizer$ARCH:0.12.8;
 
 CONTRACT_NAME=$CONTRACT_NAME$LARCH;
 
@@ -68,8 +68,8 @@ echo "CodeID found: $CODE_ID";
 
 # Instantiate the contract
 echo "\n========\n";
-echo "Instantiating contract...";
-starsd tx wasm migrate "$CONTRACT_ADDRESS" $CODE_ID "$MIGRATE_MSG" --from $KEY_NAME --label "$CONTRACT_NAME" $TXFLAG -y --no-admin;
+echo "migrating contract...";
+starsd tx wasm migrate "$CONTRACT_ADDRESS" $CODE_ID "$MIGRATE_MSG" --from $KEY_NAME $TXFLAG -y;
 echo "Contract migrated."
 
 # Store contract addr in $CONTRACT
