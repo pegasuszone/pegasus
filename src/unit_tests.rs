@@ -146,23 +146,28 @@ fn reject_offer() {
     )
 }
 
-
 #[test]
 fn test_sudo_update() {
     let mut deps = mock_dependencies();
     let env = mock_env();
     instantiate_trade_contract(deps.as_mut());
 
-    let invalid_exp_range = ExpiryRange { min: MIN_EXPIRY - 1, max: MAX_EXPIRY + 1 };
-    let sudo_msg = SudoMsg::UpdateParams { 
-        offer_expiry: Some(invalid_exp_range), 
-        maintainer: Some(CREATOR.to_string()), 
-        max_offers: Some(10), 
-        bundle_limit: Some(10) };
-
+    let invalid_exp_range = ExpiryRange {
+        min: MIN_EXPIRY - 1,
+        max: MAX_EXPIRY + 1,
+    };
+    let sudo_msg = SudoMsg::UpdateParams {
+        offer_expiry: Some(invalid_exp_range),
+        maintainer: Some(CREATOR.to_string()),
+        max_offers: Some(10),
+        bundle_limit: Some(10),
+    };
 
     let err = sudo(deps.as_mut(), env, sudo_msg).unwrap_err();
-    assert_eq!(err, ContractError::ExpiryRange(crate::ExpiryRangeError::InvalidExpirationRange {  }));
+    assert_eq!(
+        err,
+        ContractError::ExpiryRange(crate::ExpiryRangeError::InvalidExpirationRange {})
+    );
 }
 
 //---------------------------------------------------------

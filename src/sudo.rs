@@ -1,7 +1,7 @@
+use crate::helpers::ExpiryRange;
+use crate::state::{MAX_EXPIRY, SUDO_PARAMS};
 use crate::ExpiryRangeError;
 use crate::{error::ContractError, state::MIN_EXPIRY};
-use crate::helpers::ExpiryRange;
-use crate::state::{SUDO_PARAMS, MAX_EXPIRY};
 use cosmwasm_std::{DepsMut, Env};
 use sg_std::Response;
 

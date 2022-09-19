@@ -393,7 +393,7 @@ fn create_offer() {
         .wrap()
         .query_wasm_smart(trade_contract.clone(), &query_msg)
         .unwrap();
-    assert!(qres.offers.len() == 1);
+    assert_eq!(qres.offers.len(), 1);
     let on_chain_offer = qres.offers.first().unwrap();
     assert_eq!(
         on_chain_offer.offered_nfts.first().unwrap().token_id,

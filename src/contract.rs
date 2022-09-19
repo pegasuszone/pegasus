@@ -5,7 +5,7 @@ use crate::execute::{
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender, query_params};
-use crate::state::{SudoParams, SUDO_PARAMS, MIN_EXPIRY, MAX_EXPIRY};
+use crate::state::{SudoParams, MAX_EXPIRY, MIN_EXPIRY, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
 use crate::ExpiryRangeError;
 
@@ -32,7 +32,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    
+
     msg.offer_expiry.validate()?;
 
     if msg.offer_expiry.min < MIN_EXPIRY {

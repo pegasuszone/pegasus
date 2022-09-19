@@ -1,5 +1,7 @@
+use std::ops::Add;
+
 use cosmwasm_std::{Addr, StdResult, Storage, Timestamp};
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, UniqueIndex};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -65,7 +67,10 @@ pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u64> {
 pub const OFFER_NAMESPACE: &str = "offers";
 pub struct OfferIndexes<'a> {
     pub id: UniqueIndex<'a, u64, Offer>,
+    pub sender: MultiIndex<'a, Addr, Offer, Addr>,
+    pub peer: MultiIndex<'a, Addr, Offer, Addr>,
 }
+
 impl<'a> IndexList<Offer> for OfferIndexes<'a> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Offer>> + '_> {
         let v: Vec<&dyn Index<Offer>> = vec![&self.id];
@@ -76,7 +81,9 @@ impl<'a> IndexList<Offer> for OfferIndexes<'a> {
 // Function to get all offers and manipulate offer data
 pub fn offers<'a>() -> IndexedMap<'a, u64, Offer, OfferIndexes<'a>> {
     let indexes = OfferIndexes {
-        id: UniqueIndex::new(|d| d.id, "offer_id"),
+        id: UniqueIndex::new(|d| d.id, "offers__id"),
+        sender: MultiIndex::new(|d| d.sender.clone(), "offers", "offers__sender"),
+        peer: MultiIndex::new(|d| d.peer.clone(), "offers", "offers__peer"),
     };
     IndexedMap::new(OFFER_NAMESPACE, indexes)
 }

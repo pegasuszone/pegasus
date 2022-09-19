@@ -19,12 +19,9 @@ pub fn query_params(deps: Deps) -> StdResult<ParamsResponse> {
 pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
-        .id
+        .sender
+        .prefix(sender)
         .range(deps.storage, None, None, Order::Ascending)
-        .filter(|item| match item {
-            Ok((_, offer)) => offer.sender == sender,
-            Err(_) => false,
-        })
         .map(|res| res.map(|item| item.1))
         .collect::<StdResult<Vec<_>>>()?;
 
@@ -34,12 +31,9 @@ pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersRespo
 pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
-        .id
+        .peer
+        .prefix(peer)
         .range(deps.storage, None, None, Order::Ascending)
-        .filter(|item| match item {
-            Ok((_, offer)) => offer.peer == peer,
-            Err(_) => false,
-        })
         .map(|res| res.map(|item| item.1))
         .collect::<StdResult<Vec<_>>>()?;
 
