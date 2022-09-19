@@ -1,6 +1,7 @@
-use crate::error::ContractError;
+use crate::ExpiryRangeError;
+use crate::{error::ContractError, state::MIN_EXPIRY};
 use crate::helpers::ExpiryRange;
-use crate::state::SUDO_PARAMS;
+use crate::state::{SUDO_PARAMS, MAX_EXPIRY};
 use cosmwasm_std::{DepsMut, Env};
 use sg_std::Response;
 
@@ -27,6 +28,19 @@ pub fn sudo_update_params(
     let mut params = SUDO_PARAMS.load(deps.storage)?;
 
     if let Some(offer_expiry) = offer_expiry {
+        offer_expiry.validate()?;
+
+        if offer_expiry.min < MIN_EXPIRY {
+            return Err(ContractError::ExpiryRange(
+                ExpiryRangeError::InvalidExpirationRange {},
+            ));
+        }
+        if offer_expiry.max > MAX_EXPIRY {
+            return Err(ContractError::ExpiryRange(
+                ExpiryRangeError::InvalidExpirationRange {},
+            ));
+        }
+
         params.offer_expiry = offer_expiry;
     }
 

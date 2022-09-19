@@ -1,9 +1,9 @@
 #[cfg(test)]
 use crate::error::ContractError;
 
-use crate::contract::{execute, instantiate};
-use crate::msg::ExecuteMsg;
-use crate::state::offers;
+use crate::contract::{execute, instantiate, sudo};
+use crate::msg::{ExecuteMsg, SudoMsg};
+use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
 use crate::{
     msg::InstantiateMsg,
     state::{Offer, Token},
@@ -21,9 +21,6 @@ const TOKEN2_ID: u32 = 234;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 604800;
-const MIN_EXPIRY: u64 = 86400;
-
 //---------------------------------------------------------
 // Unit tests without Cw721Queries
 //---------------------------------------------------------
@@ -147,6 +144,25 @@ fn reject_offer() {
         }),
         "Error should be of type notFound."
     )
+}
+
+
+#[test]
+fn test_sudo_update() {
+    let mut deps = mock_dependencies();
+    let env = mock_env();
+    instantiate_trade_contract(deps.as_mut());
+
+    let invalid_exp_range = ExpiryRange { min: MIN_EXPIRY - 1, max: MAX_EXPIRY + 1 };
+    let sudo_msg = SudoMsg::UpdateParams { 
+        offer_expiry: Some(invalid_exp_range), 
+        maintainer: Some(CREATOR.to_string()), 
+        max_offers: Some(10), 
+        bundle_limit: Some(10) };
+
+
+    let err = sudo(deps.as_mut(), env, sudo_msg).unwrap_err();
+    assert_eq!(err, ContractError::ExpiryRange(crate::ExpiryRangeError::InvalidExpirationRange {  }));
 }
 
 //---------------------------------------------------------

@@ -5,6 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::helpers::ExpiryRange;
 
+pub const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
+pub const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
     /// Valid time range for Offers

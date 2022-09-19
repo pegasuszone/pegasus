@@ -5,7 +5,7 @@ use crate::execute::{
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender, query_params};
-use crate::state::{SudoParams, SUDO_PARAMS};
+use crate::state::{SudoParams, SUDO_PARAMS, MIN_EXPIRY, MAX_EXPIRY};
 use crate::sudo::{sudo_update_params, ParamInfo};
 use crate::ExpiryRangeError;
 
@@ -23,8 +23,6 @@ use sg_std::Response;
 // Version info for migration info
 const CONTRACT_NAME: &str = "crates.io:pegasus";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
-const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -34,6 +32,8 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    
+    msg.offer_expiry.validate()?;
 
     if msg.offer_expiry.min < MIN_EXPIRY {
         return Err(ContractError::ExpiryRange(
@@ -41,12 +41,6 @@ pub fn instantiate(
         ));
     }
     if msg.offer_expiry.max > MAX_EXPIRY {
-        return Err(ContractError::ExpiryRange(
-            ExpiryRangeError::InvalidExpirationRange {},
-        ));
-    }
-
-    if msg.offer_expiry.min >= msg.offer_expiry.max {
         return Err(ContractError::ExpiryRange(
             ExpiryRangeError::InvalidExpirationRange {},
         ));
