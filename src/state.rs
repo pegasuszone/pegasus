@@ -67,8 +67,8 @@ pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u64> {
 pub const OFFER_NAMESPACE: &str = "offers";
 pub struct OfferIndexes<'a> {
     pub id: UniqueIndex<'a, u64, Offer>,
-    pub sender: MultiIndex<'a, Addr, Offer, Addr>,
-    pub peer: MultiIndex<'a, Addr, Offer, Addr>,
+    pub sender: MultiIndex<'a, Addr, Offer, u64>,
+    pub peer: MultiIndex<'a, Addr, Offer, u64>,
 }
 
 impl<'a> IndexList<Offer> for OfferIndexes<'a> {

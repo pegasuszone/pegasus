@@ -3,7 +3,8 @@ use crate::error::ContractError;
 
 use crate::contract::{execute, instantiate, sudo};
 use crate::msg::{ExecuteMsg, SudoMsg};
-use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
+use crate::query::{query_offers_by_peer, query_offers_by_sender};
+use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY, next_offer_id};
 use crate::{
     msg::InstantiateMsg,
     state::{Offer, Token},
@@ -53,7 +54,7 @@ fn remove_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, offered_nfts, wanted_nfts);
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
 
     let exec_msg = ExecuteMsg::RemoveOffer { id: 0 };
 
@@ -110,7 +111,7 @@ fn reject_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, offered_nfts, wanted_nfts);
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
 
     let exec_msg = ExecuteMsg::RejectOffer { id: 0 };
 
@@ -170,6 +171,35 @@ fn test_sudo_update() {
     );
 }
 
+#[test]
+fn test_query_indexes() {
+    let mut deps = mock_dependencies();
+    let env = mock_env();
+    instantiate_trade_contract(deps.as_mut());
+    
+    let collection = Addr::unchecked(COLLECTION_A);
+
+    let offered_nfts = vec![Token {
+        collection: collection.clone(),
+        token_id: TOKEN1_ID,
+    }];
+    let wanted_nfts = vec![Token {
+        collection,
+        token_id: TOKEN2_ID,
+    }];
+
+    let mock_sender_info = mock_info(SENDER, &[]);
+    let mock_peer = mock_info(PEER, &[]);
+
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
+
+    let res = query_offers_by_peer(deps.as_ref(), Addr::unchecked(PEER) ).unwrap();
+    let res_sender = query_offers_by_sender(deps.as_ref()  , Addr::unchecked(SENDER)).unwrap();
+
+    assert_eq!(res_sender.offers.len(), 1, "indexing by sender inst right");
+    assert_eq!(res.offers.len(), 1, "indexing by peer isnt right");
+}
+
 //---------------------------------------------------------
 // test helpers
 //---------------------------------------------------------
@@ -179,6 +209,7 @@ fn save_new_offer(
     deps: DepsMut,
     sender: &str,
     peer: &str,
+    id: u64,
     offered_nfts: Vec<Token>,
     wanted_nfts: Vec<Token>,
 ) {
@@ -186,7 +217,7 @@ fn save_new_offer(
     let peer = Addr::unchecked(peer);
 
     let offer = Offer {
-        id: 0,
+        id: id,
         offered_nfts: offered_nfts,
         wanted_nfts: wanted_nfts,
         sender: sender,
@@ -194,6 +225,7 @@ fn save_new_offer(
         expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
         created_at: mock_env().block.time,
     };
+    // let res = offers().save(deps.storage, offer.id, &offer);
     let res = offers().save(deps.storage, offer.id, &offer);
     assert!(res.is_ok(), "Failed to save offer to storage");
 }
