@@ -19,7 +19,7 @@ pub fn query_params(deps: Deps) -> StdResult<ParamsResponse> {
 pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
-        .sender
+        .by_sender
         .prefix(sender)
         .range(deps.storage, None, None, Order::Ascending)
         .map(|res| res.map(|item| item.1))
@@ -31,7 +31,7 @@ pub fn query_offers_by_sender(deps: Deps, sender: Addr) -> StdResult<OffersRespo
 pub fn query_offers_by_peer(deps: Deps, peer: Addr) -> StdResult<OffersResponse> {
     let offers = offers()
         .idx
-        .peer
+        .by_peer
         .prefix(peer)
         .range(deps.storage, None, None, Order::Ascending)
         .map(|res| res.map(|item| item.1))

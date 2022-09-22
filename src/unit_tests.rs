@@ -4,7 +4,7 @@ use crate::error::ContractError;
 use crate::contract::{execute, instantiate, sudo};
 use crate::msg::{ExecuteMsg, SudoMsg};
 use crate::query::{query_offers_by_peer, query_offers_by_sender};
-use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY, next_offer_id};
+use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
 use crate::{
     msg::InstantiateMsg,
     state::{Offer, Token},
@@ -174,9 +174,8 @@ fn test_sudo_update() {
 #[test]
 fn test_query_indexes() {
     let mut deps = mock_dependencies();
-    let env = mock_env();
     instantiate_trade_contract(deps.as_mut());
-    
+
     let collection = Addr::unchecked(COLLECTION_A);
 
     let offered_nfts = vec![Token {
@@ -188,13 +187,10 @@ fn test_query_indexes() {
         token_id: TOKEN2_ID,
     }];
 
-    let mock_sender_info = mock_info(SENDER, &[]);
-    let mock_peer = mock_info(PEER, &[]);
-
     save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
 
-    let res = query_offers_by_peer(deps.as_ref(), Addr::unchecked(PEER) ).unwrap();
-    let res_sender = query_offers_by_sender(deps.as_ref()  , Addr::unchecked(SENDER)).unwrap();
+    let res = query_offers_by_peer(deps.as_ref(), Addr::unchecked(PEER)).unwrap();
+    let res_sender = query_offers_by_sender(deps.as_ref(), Addr::unchecked(SENDER)).unwrap();
 
     assert_eq!(res_sender.offers.len(), 1, "indexing by sender inst right");
     assert_eq!(res.offers.len(), 1, "indexing by peer isnt right");
