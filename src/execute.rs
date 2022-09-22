@@ -19,7 +19,6 @@ pub fn execute_create_offer(
     expires_at: Option<Timestamp>,
 ) -> Result<Response, ContractError> {
     if info.sender == peer {
-        // TODO: This error needs refactor: Dont know how to describe this situation. SelfSend?
         return Err(ContractError::AlreadyOwned {});
     }
 
@@ -32,6 +31,13 @@ pub fn execute_create_offer(
 
     let offers_from_sender = query_offers_by_sender(deps.as_ref(), info.sender.clone())?;
     let params = SUDO_PARAMS.load(deps.storage)?;
+
+    // check if the expiry date is valid
+    let expires =
+        expires_at.unwrap_or_else(|| env.block.time.plus_seconds(params.offer_expiry.min + 1));
+    params
+        .offer_expiry
+        .is_valid(&env.block, env.block.time, expires)?;
 
     let api = deps.api;
 
@@ -56,9 +62,32 @@ pub fn execute_create_offer(
     let mut offered_nfts: Vec<Token> = vec![];
     let mut wanted_nfts: Vec<Token> = vec![];
 
+    // check if the peer is the owner of the requested tokens
+    for token in wanted_tokens {
+        // Verify token collection addr
+        let collection = api.addr_validate(&token.collection)?;
+
+        let token = Token {
+            collection,
+            token_id: token.token_id,
+        };
+
+        wanted_nfts.push(token.clone());
+
+        if peer
+            != Cw721Contract(token.collection.clone())
+                .owner_of(&deps.querier, token.token_id.to_string(), false)?
+                .owner
+        {
+            return Err(ContractError::UnauthorizedPeer {
+                collection: token.collection.to_string(),
+                token_id: token.token_id,
+                peer: peer.into_string(),
+            });
+        }
+    }
+
     // check if the sender is the owner of the tokens
-    // TODO: Consider a different order of checks: Now, you might get a not approved error, after which you approved, but actually there is another error, like the peer is not the right owner.
-    //          Then you've approved the contract but no offer has been made, which feels a bit unsafe.
     for token in offered_tokens {
         // Verify token collection addr
         let collection = api.addr_validate(&token.collection)?;
@@ -70,7 +99,6 @@ pub fn execute_create_offer(
 
         offered_nfts.push(token.clone());
 
-        // TODO: [OPTIMISATION] See if we can levarage the OwnerOfResponse.Approvals for checking if the contract has been approved
         only_owner(deps.as_ref(), &info, &token.collection, token.token_id)?;
 
         // check if the contract is approved to send transfer the tokens
@@ -97,38 +125,6 @@ pub fn execute_create_offer(
             }
         }
     }
-
-    // check if the peer is the owner of the requested tokens
-    for token in wanted_tokens {
-        // Verify token collection addr
-        let collection = api.addr_validate(&token.collection)?;
-
-        let token = Token {
-            collection,
-            token_id: token.token_id,
-        };
-
-        wanted_nfts.push(token.clone());
-
-        if peer
-            != Cw721Contract(token.collection.clone())
-                .owner_of(&deps.querier, token.token_id.to_string(), false)?
-                .owner
-        {
-            return Err(ContractError::UnauthorizedPeer {
-                collection: token.collection.to_string(),
-                token_id: token.token_id,
-                peer: peer.into_string(),
-            });
-        }
-    }
-    let params = SUDO_PARAMS.load(deps.storage)?;
-    // check if the expiry date is valid
-    let expires =
-        expires_at.unwrap_or_else(|| env.block.time.plus_seconds(params.offer_expiry.min + 1));
-    params
-        .offer_expiry
-        .is_valid(&env.block, env.block.time, expires)?;
 
     // create and save offer
     let offer = Offer {
@@ -161,8 +157,6 @@ pub fn execute_remove_offer(
     }
 
     offers().remove(deps.storage, offer.id)?;
-
-    // TODO: Remove approvals
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
@@ -280,7 +274,6 @@ pub fn execute_reject_offer(
     if offer.peer != info.sender {
         return Err(ContractError::UnauthorizedOperator {});
     }
-    // TODO: Remove approvals
 
     offers().remove(deps.storage, offer.id)?;
 

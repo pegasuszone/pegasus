@@ -1,25 +1,21 @@
-use cosmwasm_std::{Addr, StdResult, Storage, Timestamp, Uint128};
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, UniqueIndex};
+use cosmwasm_std::{Addr, StdResult, Storage, Timestamp};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::helpers::ExpiryRange;
 
+pub const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
+pub const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SudoParams {
-    /// Amount in micros to be deposited by the sender of an offer
-    /// This escrow will be refunded when the offer is accepted or denied
-    /// The sender will lose this deposit if they let the offer expire
-    pub escrow_deposit_amount: Uint128, // TODO: This in not implemented yet
     /// Valid time range for Offers
     /// (min, max) in seconds
     pub offer_expiry: ExpiryRange,
 
     /// Developer address
     pub maintainer: Addr,
-
-    /// Stale trade removal reward, // TODO: This in not implemented yet
-    pub removal_reward_bps: u64,
 
     /// Maximum amount of offers a user can send
     pub max_offers: u64,
@@ -69,10 +65,13 @@ pub fn next_offer_id(store: &mut dyn Storage) -> StdResult<u64> {
 pub const OFFER_NAMESPACE: &str = "offers";
 pub struct OfferIndexes<'a> {
     pub id: UniqueIndex<'a, u64, Offer>,
+    pub by_sender: MultiIndex<'a, Addr, Offer, u64>,
+    pub by_peer: MultiIndex<'a, Addr, Offer, u64>,
 }
+
 impl<'a> IndexList<Offer> for OfferIndexes<'a> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<Offer>> + '_> {
-        let v: Vec<&dyn Index<Offer>> = vec![&self.id];
+        let v: Vec<&dyn Index<Offer>> = vec![&self.id, &self.by_sender, &self.by_peer];
         Box::new(v.into_iter())
     }
 }
@@ -80,7 +79,9 @@ impl<'a> IndexList<Offer> for OfferIndexes<'a> {
 // Function to get all offers and manipulate offer data
 pub fn offers<'a>() -> IndexedMap<'a, u64, Offer, OfferIndexes<'a>> {
     let indexes = OfferIndexes {
-        id: UniqueIndex::new(|d| d.id, "offer_id"),
+        id: UniqueIndex::new(|d| d.id, "offers__id"),
+        by_sender: MultiIndex::new(|d| d.sender.clone(), "offers", "offers__sender"),
+        by_peer: MultiIndex::new(|d| d.peer.clone(), "offers", "offers__peer"),
     };
     IndexedMap::new(OFFER_NAMESPACE, indexes)
 }

@@ -1,9 +1,10 @@
 #[cfg(test)]
 use crate::error::ContractError;
 
-use crate::contract::{execute, instantiate};
-use crate::msg::ExecuteMsg;
-use crate::state::offers;
+use crate::contract::{execute, instantiate, sudo};
+use crate::msg::{ExecuteMsg, SudoMsg};
+use crate::query::{query_offers_by_peer, query_offers_by_sender};
+use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
 use crate::{
     msg::InstantiateMsg,
     state::{Offer, Token},
@@ -21,9 +22,6 @@ const TOKEN2_ID: u32 = 234;
 const SENDER: &str = "sender";
 // const SENDER2: &str = "sender";
 const PEER: &str = "peer";
-const MAX_EXPIRY: u64 = 604800;
-const MIN_EXPIRY: u64 = 86400;
-
 //---------------------------------------------------------
 // Unit tests without Cw721Queries
 //---------------------------------------------------------
@@ -56,7 +54,7 @@ fn remove_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, offered_nfts, wanted_nfts);
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
 
     let exec_msg = ExecuteMsg::RemoveOffer { id: 0 };
 
@@ -113,7 +111,7 @@ fn reject_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, offered_nfts, wanted_nfts);
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
 
     let exec_msg = ExecuteMsg::RejectOffer { id: 0 };
 
@@ -149,6 +147,55 @@ fn reject_offer() {
     )
 }
 
+#[test]
+fn test_sudo_update() {
+    let mut deps = mock_dependencies();
+    let env = mock_env();
+    instantiate_trade_contract(deps.as_mut());
+
+    let invalid_exp_range = ExpiryRange {
+        min: MIN_EXPIRY - 1,
+        max: MAX_EXPIRY + 1,
+    };
+    let sudo_msg = SudoMsg::UpdateParams {
+        offer_expiry: Some(invalid_exp_range),
+        maintainer: Some(CREATOR.to_string()),
+        max_offers: Some(10),
+        bundle_limit: Some(10),
+    };
+
+    let err = sudo(deps.as_mut(), env, sudo_msg).unwrap_err();
+    assert_eq!(
+        err,
+        ContractError::ExpiryRange(crate::ExpiryRangeError::InvalidExpirationRange {})
+    );
+}
+
+#[test]
+fn test_query_indexes() {
+    let mut deps = mock_dependencies();
+    instantiate_trade_contract(deps.as_mut());
+
+    let collection = Addr::unchecked(COLLECTION_A);
+
+    let offered_nfts = vec![Token {
+        collection: collection.clone(),
+        token_id: TOKEN1_ID,
+    }];
+    let wanted_nfts = vec![Token {
+        collection,
+        token_id: TOKEN2_ID,
+    }];
+
+    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
+
+    let res = query_offers_by_peer(deps.as_ref(), Addr::unchecked(PEER)).unwrap();
+    let res_sender = query_offers_by_sender(deps.as_ref(), Addr::unchecked(SENDER)).unwrap();
+
+    assert_eq!(res_sender.offers.len(), 1, "indexing by sender inst right");
+    assert_eq!(res.offers.len(), 1, "indexing by peer isnt right");
+}
+
 //---------------------------------------------------------
 // test helpers
 //---------------------------------------------------------
@@ -158,6 +205,7 @@ fn save_new_offer(
     deps: DepsMut,
     sender: &str,
     peer: &str,
+    id: u64,
     offered_nfts: Vec<Token>,
     wanted_nfts: Vec<Token>,
 ) {
@@ -165,7 +213,7 @@ fn save_new_offer(
     let peer = Addr::unchecked(peer);
 
     let offer = Offer {
-        id: 0,
+        id: id,
         offered_nfts: offered_nfts,
         wanted_nfts: wanted_nfts,
         sender: sender,
@@ -173,6 +221,7 @@ fn save_new_offer(
         expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
         created_at: mock_env().block.time,
     };
+    // let res = offers().save(deps.storage, offer.id, &offer);
     let res = offers().save(deps.storage, offer.id, &offer);
     assert!(res.is_ok(), "Failed to save offer to storage");
 }
@@ -180,13 +229,11 @@ fn save_new_offer(
 // setup contract helper
 fn instantiate_trade_contract(deps: DepsMut) {
     let msg = InstantiateMsg {
-        escrow_deposit_amount: cosmwasm_std::Uint128::new(0),
         offer_expiry: ExpiryRange {
             min: MIN_EXPIRY,
             max: MAX_EXPIRY,
         },
         maintainer: CREATOR.to_owned(),
-        removal_reward_bps: 0,
         max_offers: 16,
         bundle_limit: 5,
     };
