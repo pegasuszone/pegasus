@@ -1,1 +1,1 @@
-0b5add04ffa93408a05fc6f0496c109dabcc7d84ef015edcc0e0f3c5b300de27  ./target/wasm32-unknown-unknown/release/pegasus.wasm
+df07d42ad171fb38826bd69f702b5b798d720584535c782c4559c4586354158c  ./target/wasm32-unknown-unknown/release/pegasus.wasm
