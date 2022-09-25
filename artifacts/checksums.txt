@@ -1,1 +1,2 @@
 d296a4d122cb9b4f512c5a4ca21a38c04604ecaaec12e499a53e6d2be4f09f5a  pegasus-aarch64.wasm
+eb3d31fa898d6df8aa206f42327e8b9975db6faef95f8dd5d339bc35076c5eb7  pegasus.wasm
