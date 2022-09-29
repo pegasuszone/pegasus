@@ -1,5 +1,10 @@
 
+### version 1.0.0 is currently available on Stargaze Mainnet 
+You can interact with it using our dedicated UI here: [pegasus-trade.zone](https://pegasus-trade.zone/). 
+The contract interaction can be found on mintscan: https://www.mintscan.io/stargaze/wasm/code/14 
+
 # Peer-2-Peer NFT trade contract
+
 
 This contract allows you to offer any NFT('s) you own for an NFT or multiple that someone else owns.
 
@@ -20,5 +25,3 @@ In order for the peer to accept a pending offer, the peer needs to approve the c
 This needs to be done in the frontend, and we recommend grouping those transactions together with the execute message sent to this contract.
 **Approval transactions go first in the list!**
 
-### Feedback and or suggestions are very welcome!
-We, the authors of this contract, are still learning a lot about Rust and CosmWasm, so any commentary or feedback is very welcome! You can do this by creating an issue, or if you want, we can hop on a call so we can do a extensive code review! 
