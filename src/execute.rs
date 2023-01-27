@@ -14,6 +14,7 @@ use cw_utils::must_pay;
 use sg721::msg::{CollectionInfoResponse, QueryMsg as Sg721QueryMsg};
 use sg_std::{Response, StargazeMsgWrapper};
 
+#[allow(clippy::too_many_arguments)]
 pub fn execute_create_offer(
     deps: DepsMut,
     env: Env,
@@ -81,7 +82,7 @@ pub fn execute_create_offer(
     let mut royalties: Vec<Royalty> = vec![];
 
     // Are royalties enforced on this transaction?
-    let royalties_enforced = offered_balances.clone().len() > 1;
+    let royalties_enforced = offered_balances.len() > 1;
 
     // Store data we're fetching in the next 2 loops for performance
     let mut offered_nfts: Vec<Token> = vec![];
