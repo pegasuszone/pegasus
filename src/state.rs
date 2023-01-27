@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdResult, Storage, Timestamp};
+use cosmwasm_std::{Addr, Coin, StdResult, Storage, Timestamp};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -35,6 +35,13 @@ pub struct Token {
     pub token_id: TokenId,
 }
 
+/// Represents a set of royalties to be paid out to a creator
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Royalty {
+    pub creator: Addr,
+    pub amount: Coin,
+}
+
 /// Represents an ask on the marketplace
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Offer {
@@ -44,6 +51,15 @@ pub struct Offer {
     /// Arrays of offered & wanted NFTs, both defined by the sender
     pub offered_nfts: Vec<Token>,
     pub wanted_nfts: Vec<Token>,
+
+    /// Array of offered native/ibc tokens, defined by sender
+    pub offered_balances: Vec<Coin>,
+
+    /// Optional text message from the sender
+    pub message: Option<String>,
+
+    /// Royalties to be paid out to creators when native/ibc tokens are involved
+    pub royalties: Vec<Royalty>,
 
     pub sender: Addr,
     pub peer: Addr,

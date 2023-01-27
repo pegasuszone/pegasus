@@ -2,7 +2,7 @@ use crate::{
     helpers::ExpiryRange,
     state::{Offer, SudoParams},
 };
-use cosmwasm_std::Timestamp;
+use cosmwasm_std::{Coin, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +35,8 @@ pub enum ExecuteMsg {
     CreateOffer {
         offered_nfts: Vec<TokenMsg>,
         wanted_nfts: Vec<TokenMsg>,
+        offered_balances: Vec<Coin>,
+        message: Option<String>,
         peer: String,
         expires_at: Option<Timestamp>,
     },

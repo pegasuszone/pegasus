@@ -266,6 +266,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -309,6 +311,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -338,6 +342,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -410,6 +416,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -441,6 +449,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -468,6 +478,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN3_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -525,6 +537,8 @@ fn accept_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };

@@ -1,13 +1,18 @@
 use crate::error::ContractError;
 use crate::msg::TokenMsg;
 use crate::query::query_offers_by_sender;
-use crate::state::{next_offer_id, offers, Offer, Token, SUDO_PARAMS};
+use crate::state::{next_offer_id, offers, Offer, Royalty, Token, SUDO_PARAMS};
 // use crate::query::{query_offers_by_sender};
 
-use cosmwasm_std::{to_binary, Addr, Deps, DepsMut, Env, MessageInfo, SubMsg, Timestamp, WasmMsg};
+use cosmwasm_std::{
+    coin, to_binary, Addr, BankMsg, Coin, Deps, DepsMut, Env, MessageInfo, StdResult, SubMsg,
+    Timestamp, WasmMsg,
+};
 use cw721::{Cw721ExecuteMsg, OwnerOfResponse};
 use cw721_base::helpers::Cw721Contract;
-use sg_std::Response;
+use cw_utils::must_pay;
+use sg721::msg::{CollectionInfoResponse, QueryMsg as Sg721QueryMsg};
+use sg_std::{Response, StargazeMsgWrapper};
 
 pub fn execute_create_offer(
     deps: DepsMut,
@@ -15,6 +20,8 @@ pub fn execute_create_offer(
     info: MessageInfo,
     offered_tokens: Vec<TokenMsg>,
     wanted_tokens: Vec<TokenMsg>,
+    offered_balances: Vec<Coin>,
+    message: Option<String>,
     peer: Addr,
     expires_at: Option<Timestamp>,
 ) -> Result<Response, ContractError> {
@@ -58,11 +65,29 @@ pub fn execute_create_offer(
         });
     }
 
+    // Verify that the offered balances have been sent to the contract
+    for balance in offered_balances.clone() {
+        let amount_paid = must_pay(&info, &balance.denom)?;
+        if amount_paid < balance.amount {
+            return Err(ContractError::Payment(cw_utils::PaymentError::NoFunds {}));
+        }
+    }
+
+    // If there are any native/ibc tokens involved in the tx, we need to enforce
+    // creator royalties on both the NFTs that are offered and requested.
+    // The tokens used for royalties will be initially stored in the contract and
+    // will be distributed to creators when the offer is confirmed.
+    // This array will store the royalty amounts to be paid out.
+    let mut royalties: Vec<Royalty> = vec![];
+
+    // Are royalties enforced on this transaction?
+    let royalties_enforced = offered_balances.clone().len() > 1;
+
     // Store data we're fetching in the next 2 loops for performance
     let mut offered_nfts: Vec<Token> = vec![];
     let mut wanted_nfts: Vec<Token> = vec![];
 
-    // check if the peer is the owner of the requested tokens
+    // check if the peer is the owner of the requested nfts
     for token in wanted_tokens {
         // Verify token collection addr
         let collection = api.addr_validate(&token.collection)?;
@@ -85,9 +110,32 @@ pub fn execute_create_offer(
                 peer: peer.into_string(),
             });
         }
+
+        // If royalties are to be enforced,
+        // figure out the amount of royalties to pay out.
+        if royalties_enforced {
+            let collection_info: CollectionInfoResponse = deps
+                .querier
+                .query_wasm_smart(token.collection.clone(), &Sg721QueryMsg::CollectionInfo {})?;
+            if let Some(royalty_info) = collection_info.royalty_info {
+                for balance in offered_balances.clone() {
+                    // Return an error if insufficient amount paid
+                    let to_pay = royalty_info.share * balance.amount;
+                    let amount_paid = must_pay(&info, &balance.denom)?;
+                    if amount_paid < to_pay {
+                        return Err(ContractError::InsufficientRoyalties {});
+                    }
+
+                    royalties.push(Royalty {
+                        creator: deps.api.addr_validate(&royalty_info.payment_address)?,
+                        amount: coin(to_pay.u128(), balance.denom),
+                    });
+                }
+            }
+        }
     }
 
-    // check if the sender is the owner of the tokens
+    // check if the sender is the owner of the nfts
     for token in offered_tokens {
         // Verify token collection addr
         let collection = api.addr_validate(&token.collection)?;
@@ -124,6 +172,29 @@ pub fn execute_create_offer(
                 });
             }
         }
+
+        // If royalties are to be enforced,
+        // figure out the amount of royalties to pay out.
+        if royalties_enforced {
+            let collection_info: CollectionInfoResponse = deps
+                .querier
+                .query_wasm_smart(token.collection.clone(), &Sg721QueryMsg::CollectionInfo {})?;
+            if let Some(royalty_info) = collection_info.royalty_info {
+                for balance in offered_balances.clone() {
+                    // Return an error if insufficient amount paid
+                    let to_pay = royalty_info.share * balance.amount;
+                    let amount_paid = must_pay(&info, &balance.denom)?;
+                    if amount_paid < to_pay {
+                        return Err(ContractError::InsufficientRoyalties {});
+                    }
+
+                    royalties.push(Royalty {
+                        creator: deps.api.addr_validate(&royalty_info.payment_address)?,
+                        amount: coin(to_pay.u128(), balance.denom),
+                    });
+                }
+            }
+        }
     }
 
     // create and save offer
@@ -131,6 +202,9 @@ pub fn execute_create_offer(
         id: next_offer_id(deps.storage)?,
         offered_nfts,
         wanted_nfts,
+        offered_balances,
+        message,
+        royalties,
         sender: info.sender,
         peer,
         expires_at: expires,
@@ -156,13 +230,24 @@ pub fn execute_remove_offer(
         return Err(ContractError::UnauthorizedSender {});
     }
 
+    let mut msgs = vec![];
+
+    // Return any funds held by the contract to the sender
+    for balance in offer.offered_balances {
+        msgs.push(send_tokens(offer.sender.clone(), balance)?);
+    }
+    for royalty in offer.royalties {
+        msgs.push(send_tokens(offer.sender.clone(), royalty.amount)?);
+    }
+
     offers().remove(deps.storage, offer.id)?;
 
     Ok(Response::new()
         .add_attribute("action", "revoke_offer")
         .add_attribute("offer_id", offer.id.to_string())
         .add_attribute("offer_sender", offer.sender)
-        .add_attribute("offer_peer", offer.peer))
+        .add_attribute("offer_peer", offer.peer)
+        .add_submessages(msgs))
 }
 
 pub fn execute_accept_offer(
@@ -236,11 +321,25 @@ pub fn execute_accept_offer(
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
     transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
 
+    // transfer funds to peer
+    let mut send_msgs = vec![];
+    for balance in offer.offered_balances {
+        send_msgs.push(send_tokens(offer.peer.clone(), balance)?);
+    }
+
+    // transfer royalties to creators
+    let mut royalty_msgs = vec![];
+    for royalty in offer.royalties {
+        royalty_msgs.push(send_tokens(royalty.creator, royalty.amount)?);
+    }
+
     Ok(res
         .add_attribute("action", "accept_offer")
         .add_attribute("offer_id", offer.id.to_string())
         .add_attribute("offer_sender", offer.sender)
-        .add_attribute("offer_peer", offer.peer))
+        .add_attribute("offer_peer", offer.peer)
+        .add_submessages(send_msgs)
+        .add_submessages(royalty_msgs))
 }
 
 pub fn transfer_nfts(
@@ -275,13 +374,24 @@ pub fn execute_reject_offer(
         return Err(ContractError::UnauthorizedOperator {});
     }
 
+    let mut msgs = vec![];
+
+    // Return any funds held by the contract to the sender
+    for balance in offer.offered_balances {
+        msgs.push(send_tokens(offer.sender.clone(), balance)?);
+    }
+    for royalty in offer.royalties {
+        msgs.push(send_tokens(offer.sender.clone(), royalty.amount)?);
+    }
+
     offers().remove(deps.storage, offer.id)?;
 
     Ok(Response::new()
         .add_attribute("action", "reject_offer")
         .add_attribute("offer_id", offer.id.to_string())
         .add_attribute("offer_sender", offer.sender)
-        .add_attribute("offer_peer", offer.peer))
+        .add_attribute("offer_peer", offer.peer)
+        .add_submessages(msgs))
 }
 
 pub fn execute_remove_stale_offer(
@@ -302,13 +412,24 @@ pub fn execute_remove_stale_offer(
         .offer_expiry
         .is_valid(&env.block, offer.created_at, offer.expires_at)?;
 
+    let mut msgs = vec![];
+
+    // Return any funds held by the contract to the sender
+    for balance in offer.offered_balances {
+        msgs.push(send_tokens(offer.sender.clone(), balance)?);
+    }
+    for royalty in offer.royalties {
+        msgs.push(send_tokens(offer.sender.clone(), royalty.amount)?);
+    }
+
     offers().remove(deps.storage, id)?;
 
     Ok(Response::new()
         .add_attribute("action", "remove_stale_offer")
         .add_attribute("offer_id", offer.id.to_string())
         .add_attribute("offer_sender", offer.sender)
-        .add_attribute("offer_peer", offer.peer))
+        .add_attribute("offer_peer", offer.peer)
+        .add_submessages(msgs))
 }
 
 // ---------------------------------------------------------------------------------
@@ -329,6 +450,18 @@ fn only_owner(
     }
 
     Ok(res)
+}
+
+// Send native tokens to another address
+pub fn send_tokens(to: Addr, balance: Coin) -> StdResult<SubMsg<StargazeMsgWrapper>> {
+    let msg = BankMsg::Send {
+        to_address: to.into_string(),
+        amount: vec![balance],
+    };
+
+    let exec = SubMsg::<StargazeMsgWrapper>::new(msg);
+
+    Ok(exec)
 }
 
 // fn finalize_trade(deps: Deps, offered: Vec<Token>) {}
