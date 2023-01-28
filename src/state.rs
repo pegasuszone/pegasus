@@ -1,14 +1,13 @@
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Coin, StdResult, Storage, Timestamp};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::helpers::ExpiryRange;
 
 pub const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
 pub const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one month
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct SudoParams {
     /// Valid time range for Offers
     /// (min, max) in seconds
@@ -29,21 +28,21 @@ pub const SUDO_PARAMS: Item<SudoParams> = Item::new("sudo-params");
 pub type TokenId = u32;
 
 /// Represents a token that can be offered
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct Token {
     pub collection: Addr,
     pub token_id: TokenId,
 }
 
 /// Represents a set of royalties to be paid out to a creator
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct Royalty {
     pub creator: Addr,
     pub amount: Coin,
 }
 
 /// Represents an ask on the marketplace
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct Offer {
     /// Unique identifier
     pub id: u64,

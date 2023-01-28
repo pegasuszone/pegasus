@@ -2,11 +2,10 @@ use crate::{
     helpers::ExpiryRange,
     state::{Offer, SudoParams},
 };
+use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Coin, Timestamp};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct InstantiateMsg {
     /// Valid time range for Offers
     /// (min, max) in seconds
@@ -22,14 +21,13 @@ pub struct InstantiateMsg {
     pub bundle_limit: u64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct TokenMsg {
     pub collection: String,
     pub token_id: u32,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum ExecuteMsg {
     /// Create a new offer
     CreateOffer {
@@ -50,8 +48,7 @@ pub enum ExecuteMsg {
     RemoveStaleOffer { id: u64 },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum SudoMsg {
     /// Update the contract parameters
     /// Can only be called by governance
@@ -63,26 +60,30 @@ pub enum SudoMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(OfferResponse)]
     Offer { id: u64 },
+    #[returns(OffersResponse)]
     OffersBySender { sender: String },
+    #[returns(OffersResponse)]
     OffersByPeer { peer: String },
+    #[returns(ParamsResponse)]
     Params {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct OfferResponse {
     pub offer: Option<Offer>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct OffersResponse {
     pub offers: Vec<Offer>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct ParamsResponse {
     pub params: SudoParams,
 }

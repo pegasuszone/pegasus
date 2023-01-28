@@ -1,0 +1,1001 @@
+{
+  "contract_name": "pegasus",
+  "contract_version": "2.0.0",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "type": "object",
+    "required": [
+      "bundle_limit",
+      "maintainer",
+      "max_offers",
+      "offer_expiry"
+    ],
+    "properties": {
+      "bundle_limit": {
+        "description": "Maximum amount of NFTs in bundle",
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0.0
+      },
+      "maintainer": {
+        "description": "Developer address",
+        "type": "string"
+      },
+      "max_offers": {
+        "description": "Maximum amount of offers that can be sent by a user",
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0.0
+      },
+      "offer_expiry": {
+        "description": "Valid time range for Offers (min, max) in seconds",
+        "allOf": [
+          {
+            "$ref": "#/definitions/ExpiryRange"
+          }
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "definitions": {
+      "ExpiryRange": {
+        "type": "object",
+        "required": [
+          "max",
+          "min"
+        ],
+        "properties": {
+          "max": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "min": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "oneOf": [
+      {
+        "description": "Create a new offer",
+        "type": "object",
+        "required": [
+          "create_offer"
+        ],
+        "properties": {
+          "create_offer": {
+            "type": "object",
+            "required": [
+              "offered_balances",
+              "offered_nfts",
+              "peer",
+              "wanted_nfts"
+            ],
+            "properties": {
+              "expires_at": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Timestamp"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "offered_balances": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Coin"
+                }
+              },
+              "offered_nfts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/TokenMsg"
+                }
+              },
+              "peer": {
+                "type": "string"
+              },
+              "wanted_nfts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/TokenMsg"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Remove an offer (called by sender)",
+        "type": "object",
+        "required": [
+          "remove_offer"
+        ],
+        "properties": {
+          "remove_offer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Accept an existing offer (called by peer)",
+        "type": "object",
+        "required": [
+          "accept_offer"
+        ],
+        "properties": {
+          "accept_offer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Reject an existing offer (called by peer)",
+        "type": "object",
+        "required": [
+          "reject_offer"
+        ],
+        "properties": {
+          "reject_offer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Operation to remove stale offers (called by anyone & incentivized)",
+        "type": "object",
+        "required": [
+          "remove_stale_offer"
+        ],
+        "properties": {
+          "remove_stale_offer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "Coin": {
+        "type": "object",
+        "required": [
+          "amount",
+          "denom"
+        ],
+        "properties": {
+          "amount": {
+            "$ref": "#/definitions/Uint128"
+          },
+          "denom": {
+            "type": "string"
+          }
+        }
+      },
+      "Timestamp": {
+        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint64"
+          }
+        ]
+      },
+      "TokenMsg": {
+        "type": "object",
+        "required": [
+          "collection",
+          "token_id"
+        ],
+        "properties": {
+          "collection": {
+            "type": "string"
+          },
+          "token_id": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "Uint128": {
+        "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+        "type": "string"
+      },
+      "Uint64": {
+        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "type": "string"
+      }
+    }
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "offer"
+        ],
+        "properties": {
+          "offer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "offers_by_sender"
+        ],
+        "properties": {
+          "offers_by_sender": {
+            "type": "object",
+            "required": [
+              "sender"
+            ],
+            "properties": {
+              "sender": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "offers_by_peer"
+        ],
+        "properties": {
+          "offers_by_peer": {
+            "type": "object",
+            "required": [
+              "peer"
+            ],
+            "properties": {
+              "peer": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "params"
+        ],
+        "properties": {
+          "params": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ]
+  },
+  "migrate": null,
+  "sudo": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "SudoMsg",
+    "oneOf": [
+      {
+        "description": "Update the contract parameters Can only be called by governance",
+        "type": "object",
+        "required": [
+          "update_params"
+        ],
+        "properties": {
+          "update_params": {
+            "type": "object",
+            "properties": {
+              "bundle_limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "maintainer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "max_offers": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "offer_expiry": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ExpiryRange"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "ExpiryRange": {
+        "type": "object",
+        "required": [
+          "max",
+          "min"
+        ],
+        "properties": {
+          "max": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "min": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "responses": {
+    "offer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OfferResponse",
+      "type": "object",
+      "properties": {
+        "offer": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Offer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Coin": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "denom": {
+              "type": "string"
+            }
+          }
+        },
+        "Offer": {
+          "description": "Represents an ask on the marketplace",
+          "type": "object",
+          "required": [
+            "created_at",
+            "expires_at",
+            "id",
+            "offered_balances",
+            "offered_nfts",
+            "peer",
+            "royalties",
+            "sender",
+            "wanted_nfts"
+          ],
+          "properties": {
+            "created_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "expires_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "id": {
+              "description": "Unique identifier",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "message": {
+              "description": "Optional text message from the sender",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "offered_balances": {
+              "description": "Array of offered native/ibc tokens, defined by sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
+            "offered_nfts": {
+              "description": "Arrays of offered & wanted NFTs, both defined by the sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            },
+            "peer": {
+              "$ref": "#/definitions/Addr"
+            },
+            "royalties": {
+              "description": "Royalties to be paid out to creators when native/ibc tokens are involved",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Royalty"
+              }
+            },
+            "sender": {
+              "$ref": "#/definitions/Addr"
+            },
+            "wanted_nfts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Royalty": {
+          "description": "Represents a set of royalties to be paid out to a creator",
+          "type": "object",
+          "required": [
+            "amount",
+            "creator"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Coin"
+            },
+            "creator": {
+              "$ref": "#/definitions/Addr"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Token": {
+          "description": "Represents a token that can be offered",
+          "type": "object",
+          "required": [
+            "collection",
+            "token_id"
+          ],
+          "properties": {
+            "collection": {
+              "$ref": "#/definitions/Addr"
+            },
+            "token_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "offers_by_peer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OffersResponse",
+      "type": "object",
+      "required": [
+        "offers"
+      ],
+      "properties": {
+        "offers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Offer"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Coin": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "denom": {
+              "type": "string"
+            }
+          }
+        },
+        "Offer": {
+          "description": "Represents an ask on the marketplace",
+          "type": "object",
+          "required": [
+            "created_at",
+            "expires_at",
+            "id",
+            "offered_balances",
+            "offered_nfts",
+            "peer",
+            "royalties",
+            "sender",
+            "wanted_nfts"
+          ],
+          "properties": {
+            "created_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "expires_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "id": {
+              "description": "Unique identifier",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "message": {
+              "description": "Optional text message from the sender",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "offered_balances": {
+              "description": "Array of offered native/ibc tokens, defined by sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
+            "offered_nfts": {
+              "description": "Arrays of offered & wanted NFTs, both defined by the sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            },
+            "peer": {
+              "$ref": "#/definitions/Addr"
+            },
+            "royalties": {
+              "description": "Royalties to be paid out to creators when native/ibc tokens are involved",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Royalty"
+              }
+            },
+            "sender": {
+              "$ref": "#/definitions/Addr"
+            },
+            "wanted_nfts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Royalty": {
+          "description": "Represents a set of royalties to be paid out to a creator",
+          "type": "object",
+          "required": [
+            "amount",
+            "creator"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Coin"
+            },
+            "creator": {
+              "$ref": "#/definitions/Addr"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Token": {
+          "description": "Represents a token that can be offered",
+          "type": "object",
+          "required": [
+            "collection",
+            "token_id"
+          ],
+          "properties": {
+            "collection": {
+              "$ref": "#/definitions/Addr"
+            },
+            "token_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "offers_by_sender": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OffersResponse",
+      "type": "object",
+      "required": [
+        "offers"
+      ],
+      "properties": {
+        "offers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Offer"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Coin": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "denom": {
+              "type": "string"
+            }
+          }
+        },
+        "Offer": {
+          "description": "Represents an ask on the marketplace",
+          "type": "object",
+          "required": [
+            "created_at",
+            "expires_at",
+            "id",
+            "offered_balances",
+            "offered_nfts",
+            "peer",
+            "royalties",
+            "sender",
+            "wanted_nfts"
+          ],
+          "properties": {
+            "created_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "expires_at": {
+              "$ref": "#/definitions/Timestamp"
+            },
+            "id": {
+              "description": "Unique identifier",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "message": {
+              "description": "Optional text message from the sender",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "offered_balances": {
+              "description": "Array of offered native/ibc tokens, defined by sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
+            "offered_nfts": {
+              "description": "Arrays of offered & wanted NFTs, both defined by the sender",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            },
+            "peer": {
+              "$ref": "#/definitions/Addr"
+            },
+            "royalties": {
+              "description": "Royalties to be paid out to creators when native/ibc tokens are involved",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Royalty"
+              }
+            },
+            "sender": {
+              "$ref": "#/definitions/Addr"
+            },
+            "wanted_nfts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Token"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Royalty": {
+          "description": "Represents a set of royalties to be paid out to a creator",
+          "type": "object",
+          "required": [
+            "amount",
+            "creator"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Coin"
+            },
+            "creator": {
+              "$ref": "#/definitions/Addr"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Token": {
+          "description": "Represents a token that can be offered",
+          "type": "object",
+          "required": [
+            "collection",
+            "token_id"
+          ],
+          "properties": {
+            "collection": {
+              "$ref": "#/definitions/Addr"
+            },
+            "token_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "params": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ParamsResponse",
+      "type": "object",
+      "required": [
+        "params"
+      ],
+      "properties": {
+        "params": {
+          "$ref": "#/definitions/SudoParams"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "ExpiryRange": {
+          "type": "object",
+          "required": [
+            "max",
+            "min"
+          ],
+          "properties": {
+            "max": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "min": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "SudoParams": {
+          "type": "object",
+          "required": [
+            "bundle_limit",
+            "maintainer",
+            "max_offers",
+            "offer_expiry"
+          ],
+          "properties": {
+            "bundle_limit": {
+              "description": "Maximum amount of NFTs in bundle",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "maintainer": {
+              "description": "Developer address",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "max_offers": {
+              "description": "Maximum amount of offers a user can send",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "offer_expiry": {
+              "description": "Valid time range for Offers (min, max) in seconds",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ExpiryRange"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}
