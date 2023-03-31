@@ -397,6 +397,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "cw721-trade"
+version = "0.2.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cosmwasm-storage",
+ "cw-multi-test 0.16.2",
+ "cw-storage-plus 0.13.4",
+ "cw-utils 1.0.1",
+ "cw2 1.0.1",
+ "cw20",
+ "cw721",
+ "cw721-base",
+ "pegasus",
+ "schemars",
+ "semver",
+ "serde",
+ "sg-controllers",
+ "sg-multi-test",
+ "sg-std",
+ "sg1 0.14.0",
+ "sg721",
+ "thiserror",
+]
+
+[[package]]
 name = "der"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -592,13 +618,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "interfaces"
-version = "0.1.0"
-dependencies = [
- "boot-core",
-]
-
-[[package]]
 name = "itertools"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -654,38 +673,20 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "pegasus"
-version = "0.2.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-multi-test 0.16.2",
- "cw-storage-plus 0.13.4",
- "cw-utils 1.0.1",
- "cw2 1.0.1",
- "cw20",
- "cw721",
- "cw721-base",
- "pegasus-trade",
- "schemars",
- "semver",
- "serde",
- "sg-controllers",
- "sg-multi-test",
- "sg-std",
- "sg1 0.14.0",
- "sg721",
- "thiserror",
-]
-
-[[package]]
-name = "pegasus-trade"
 version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 0.13.4",
  "thiserror",
+]
+
+[[package]]
+name = "pegasus-boot"
+version = "0.2.0"
+dependencies = [
+ "boot-core",
+ "pegasus",
 ]
 
 [[package]]

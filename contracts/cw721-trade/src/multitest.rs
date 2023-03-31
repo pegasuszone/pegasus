@@ -3,7 +3,7 @@ use cosmwasm_std::{coins, Addr, Coin, Empty, Timestamp};
 use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
 use cw_utils::Expiration;
-use pegasus_trade::pegasus::ExpiryRange;
+use pegasus::cw721_trade::ExpiryRange;
 use sg721::msg::InstantiateMsg as Sg721InstantiateMsg;
 use sg721::state::CollectionInfo;
 

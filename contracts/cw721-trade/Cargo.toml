@@ -1,5 +1,5 @@
 [package]
-name = "pegasus"
+name = "cw721-trade"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -57,7 +57,7 @@ sg1 = { workspace = true }
 sg-controllers = { workspace = true }
 semver = { workspace = true }
 cosmwasm-schema = { workspace = true }
-pegasus-trade = { workspace = true }
+pegasus = { workspace = true }
 thiserror.workspace = true
 
 

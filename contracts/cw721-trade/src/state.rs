@@ -1,7 +1,7 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Coin, StdResult, Storage, Timestamp};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
-use pegasus_trade::pegasus::{ExpiryRange, Offer, SudoParams};
+use pegasus::cw721_trade::{ExpiryRange, Offer, SudoParams};
 pub const MIN_EXPIRY: u64 = 3600 * 24; // seconds -> one day
 pub const MAX_EXPIRY: u64 = 3600 * 24 * 28; // seconds -> one monthst M
 

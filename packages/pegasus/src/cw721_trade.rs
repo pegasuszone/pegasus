@@ -2,7 +2,11 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, BlockInfo, Coin, StdError, Timestamp};
 use thiserror::Error;
 
+pub const CW721_TRADE: &str = "cw721-trade";
+
 #[cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub struct InstantiateMsg {
     /// Valid time range for Offers
     /// (min, max) in seconds
@@ -25,6 +29,8 @@ pub struct TokenMsg {
 }
 
 #[cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum ExecuteMsg {
     /// Create a new offer
     CreateOffer {
@@ -46,6 +52,8 @@ pub enum ExecuteMsg {
 }
 
 #[cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::SudoMsgFns))]
+#[cfg_attr(feature = "boot", impl_into(SudoMsg))]
 pub enum SudoMsg {
     /// Update the contract parameters
     /// Can only be called by governance
@@ -58,6 +66,11 @@ pub enum SudoMsg {
 }
 
 #[cw_serde]
+pub enum MigrateMsg {}
+
+#[cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(OfferResponse)]

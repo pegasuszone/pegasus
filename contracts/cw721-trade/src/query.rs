@@ -1,6 +1,6 @@
 use crate::state::{offers, SUDO_PARAMS};
 use cosmwasm_std::{Addr, Deps, Order, StdResult};
-use pegasus_trade::pegasus::{OfferResponse, OffersResponse, ParamsResponse};
+use pegasus::cw721_trade::{OfferResponse, OffersResponse, ParamsResponse};
 
 // Query limits
 // const DEFAULT_QUERY_LIMIT: u32 = 10;

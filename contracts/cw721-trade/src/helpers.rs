@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{to_binary, Addr, BlockInfo, StdError, StdResult, Timestamp, WasmMsg};
-use pegasus_trade::pegasus::ExecuteMsg;
+use pegasus::cw721_trade::ExecuteMsg;
 use sg_std::CosmosMsg;
 
 /// MarketplaceContract is a wrapper around Addr that provides a lot of helpers

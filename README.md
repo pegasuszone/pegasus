@@ -1,6 +1,6 @@
 
 ### version 1.0.0 is currently available on Stargaze Mainnet 
-You can interact with it using our dedicated UI here: [pegasus-trade.zone](https://pegasus-trade.zone/). 
+You can interact with it using our dedicated UI here: [pegasus.zone](https://pegasus.zone/). 
 The contract interaction can be found on mintscan: https://www.mintscan.io/stargaze/wasm/code/14 
 
 # Peer-2-Peer NFT trade contract

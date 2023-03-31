@@ -4,7 +4,7 @@ use crate::error::ContractError;
 use crate::contract::{execute, instantiate, sudo};
 use crate::query::{query_offers_by_peer, query_offers_by_sender};
 use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
-use pegasus_trade::pegasus::{
+use pegasus::cw721_trade::{
     ExecuteMsg, ExpiryRange, ExpiryRangeError, InstantiateMsg, Offer, SudoMsg, Token,
 };
 

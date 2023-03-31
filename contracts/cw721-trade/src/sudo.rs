@@ -1,7 +1,7 @@
 use crate::state::{MAX_EXPIRY, SUDO_PARAMS};
 use crate::{error::ContractError, state::MIN_EXPIRY};
 use cosmwasm_std::{DepsMut, Env};
-use pegasus_trade::pegasus::{ExpiryRange, ExpiryRangeError};
+use pegasus::cw721_trade::{ExpiryRange, ExpiryRangeError};
 use sg_std::Response;
 
 pub struct ParamInfo {

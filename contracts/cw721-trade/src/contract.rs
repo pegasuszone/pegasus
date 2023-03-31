@@ -6,8 +6,8 @@ use crate::execute::{
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender, query_params};
 use crate::state::{MAX_EXPIRY, MIN_EXPIRY, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
-use pegasus_trade::pegasus::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
-use pegasus_trade::pegasus::{ExpiryRangeError, SudoParams};
+use pegasus::cw721_trade::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
+use pegasus::cw721_trade::{ExpiryRangeError, SudoParams};
 
 // use crate::query::{query_offers_by_sender};
 
