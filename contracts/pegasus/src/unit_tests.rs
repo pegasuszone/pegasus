@@ -2,13 +2,10 @@
 use crate::error::ContractError;
 
 use crate::contract::{execute, instantiate, sudo};
-use crate::msg::{ExecuteMsg, SudoMsg};
 use crate::query::{query_offers_by_peer, query_offers_by_sender};
 use crate::state::{offers, MAX_EXPIRY, MIN_EXPIRY};
-use crate::{
-    msg::InstantiateMsg,
-    state::{Offer, Token},
-    ExpiryRange,
+use pegasus_trade::pegasus::{
+    ExecuteMsg, ExpiryRange, ExpiryRangeError, InstantiateMsg, Offer, SudoMsg, Token,
 };
 
 use cosmwasm_std::{testing::*, Addr, Coin, DepsMut, StdError, Timestamp};
@@ -185,7 +182,7 @@ fn test_sudo_update() {
     let err = sudo(deps.as_mut(), env, sudo_msg).unwrap_err();
     assert_eq!(
         err,
-        ContractError::ExpiryRange(crate::ExpiryRangeError::InvalidExpirationRange {})
+        ContractError::ExpiryRange(ExpiryRangeError::InvalidExpirationRange {})
     );
 }
 

@@ -1,7 +1,7 @@
 use crate::error::ContractError;
-use crate::msg::TokenMsg;
 use crate::query::query_offers_by_sender;
-use crate::state::{next_offer_id, offers, Offer, Royalty, Token, SUDO_PARAMS};
+use crate::state::{next_offer_id, offers, SUDO_PARAMS};
+use pegasus_trade::pegasus::{Offer, Royalty, Token, TokenMsg};
 // use crate::query::{query_offers_by_sender};
 
 use cosmwasm_std::{

@@ -3,11 +3,11 @@ use crate::execute::{
     execute_accept_offer, execute_create_offer, execute_reject_offer, execute_remove_offer,
     execute_remove_stale_offer,
 };
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
 use crate::query::{query_offer, query_offers_by_peer, query_offers_by_sender, query_params};
-use crate::state::{SudoParams, MAX_EXPIRY, MIN_EXPIRY, SUDO_PARAMS};
+use crate::state::{MAX_EXPIRY, MIN_EXPIRY, SUDO_PARAMS};
 use crate::sudo::{sudo_update_params, ParamInfo};
-use crate::ExpiryRangeError;
+use pegasus_trade::pegasus::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
+use pegasus_trade::pegasus::{ExpiryRangeError, SudoParams};
 
 // use crate::query::{query_offers_by_sender};
 
