@@ -400,6 +400,7 @@ dependencies = [
 name = "cw721-trade"
 version = "0.2.0"
 dependencies = [
+ "boot-core",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cosmwasm-storage",
@@ -675,8 +676,10 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 name = "pegasus"
 version = "0.1.0"
 dependencies = [
+ "boot-core",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw-multi-test 0.16.2",
  "cw-storage-plus 0.13.4",
  "thiserror",
 ]

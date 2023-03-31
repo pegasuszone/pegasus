@@ -62,5 +62,6 @@ thiserror.workspace = true
 
 
 [dev-dependencies]
-cw-multi-test = { workspace = true }
+boot-core.workspace = true
+cw-multi-test.workspace = true
 sg-multi-test = { workspace = true }

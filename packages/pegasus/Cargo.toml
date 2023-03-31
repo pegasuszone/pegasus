@@ -10,3 +10,7 @@ cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
 cw-storage-plus = { workspace = true }
 thiserror = { version = "1.0.30" }
+
+[dev-dependencies]
+boot-core.workspace = true
+cw-multi-test.workspace = true

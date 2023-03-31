@@ -1,4 +1,3 @@
-use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Coin, StdResult, Storage, Timestamp};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
 use pegasus::cw721_trade::{ExpiryRange, Offer, SudoParams};
