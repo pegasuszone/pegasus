@@ -50,7 +50,7 @@ cw721 = { workspace = true }
 cw721-base = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
-sg721 = { workspace = true }
+sg721.workspace = true
 sg-std = { workspace = true }
 cw-utils = { workspace = true }
 sg1 = { workspace = true }
@@ -58,10 +58,14 @@ sg-controllers = { workspace = true }
 semver = { workspace = true }
 cosmwasm-schema = { workspace = true }
 pegasus = { workspace = true }
+pegasus-boot = { workspace = true }
 thiserror.workspace = true
+abstract-boot = "0.13.0"
 
 
 [dev-dependencies]
+anyhow.workspace = true
 boot-core.workspace = true
 cw-multi-test.workspace = true
 sg-multi-test = { workspace = true }
+sg721.workspace = true

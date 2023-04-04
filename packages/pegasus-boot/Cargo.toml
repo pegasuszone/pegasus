@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 boot-core = { workspace = true }
 pegasus = { path = "../pegasus" }
+cw721 = { workspace = true }
+cw721-base = { workspace = true }
+sg721 = { workspace = true }

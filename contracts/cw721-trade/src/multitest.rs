@@ -12,8 +12,8 @@ use sg_multi_test::StargazeApp;
 
 use sg_std::{StargazeMsgWrapper, NATIVE_DENOM};
 
-use crate::msg::{ExecuteMsg, OffersResponse, QueryMsg, TokenMsg};
 use crate::ContractError;
+use pegasus::cw721_trade::{ExecuteMsg, OffersResponse, QueryMsg, TokenMsg};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
