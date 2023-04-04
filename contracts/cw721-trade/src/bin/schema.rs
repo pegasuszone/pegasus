@@ -1,5 +1,5 @@
 use cosmwasm_schema::write_api;
-use pegasus::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
+use pegasus::cw721_trade::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
 
 fn main() {
     write_api! {

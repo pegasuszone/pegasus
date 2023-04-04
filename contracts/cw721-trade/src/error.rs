@@ -2,7 +2,7 @@ use cosmwasm_std::StdError;
 use cw_utils::PaymentError;
 use thiserror::Error;
 
-use crate::helpers::ExpiryRangeError;
+use pegasus::cw721_trade::ExpiryRangeError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ContractError {

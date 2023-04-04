@@ -1,0 +1,71 @@
+[package]
+name = "cw721-trade"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+publish = false
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[profile.release]
+opt-level = "s"
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = false
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/rust-optimizer:0.12.8
+"""
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-storage = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw721 = { workspace = true }
+cw721-base = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+sg721.workspace = true
+sg-std = { workspace = true }
+cw-utils = { workspace = true }
+sg1 = { workspace = true }
+sg-controllers = { workspace = true }
+semver = { workspace = true }
+cosmwasm-schema = { workspace = true }
+pegasus = { workspace = true }
+pegasus-boot = { workspace = true }
+thiserror.workspace = true
+abstract-boot = "0.13.0"
+
+
+[dev-dependencies]
+anyhow.workspace = true
+boot-core.workspace = true
+cw-multi-test.workspace = true
+sg-multi-test = { workspace = true }
+sg721.workspace = true

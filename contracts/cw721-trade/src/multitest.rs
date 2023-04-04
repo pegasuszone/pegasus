@@ -3,6 +3,7 @@ use cosmwasm_std::{coins, Addr, Coin, Empty, Timestamp};
 use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw721_base::msg::{ExecuteMsg as Cw721ExecuteMsg, MintMsg};
 use cw_utils::Expiration;
+use pegasus::cw721_trade::ExpiryRange;
 use sg721::msg::InstantiateMsg as Sg721InstantiateMsg;
 use sg721::state::CollectionInfo;
 
@@ -11,8 +12,8 @@ use sg_multi_test::StargazeApp;
 
 use sg_std::{StargazeMsgWrapper, NATIVE_DENOM};
 
-use crate::msg::{ExecuteMsg, OffersResponse, QueryMsg, TokenMsg};
 use crate::ContractError;
+use pegasus::cw721_trade::{ExecuteMsg, OffersResponse, QueryMsg, TokenMsg};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
@@ -64,7 +65,7 @@ fn setup_contracts(
     // Instantiate marketplace contract
     let p2p_contract_id = router.store_code(contract_p2p_trade());
     let msg = crate::msg::InstantiateMsg {
-        offer_expiry: crate::ExpiryRange {
+        offer_expiry: ExpiryRange {
             min: MIN_EXPIRY,
             max: MAX_EXPIRY,
         },
