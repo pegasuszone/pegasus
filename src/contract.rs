@@ -70,6 +70,8 @@ pub fn execute(
         ExecuteMsg::CreateOffer {
             offered_nfts,
             wanted_nfts,
+            offered_balances,
+            message,
             peer,
             expires_at,
         } => execute_create_offer(
@@ -78,6 +80,8 @@ pub fn execute(
             info,
             offered_nfts,
             wanted_nfts,
+            offered_balances,
+            message,
             api.addr_validate(&peer)?,
             expires_at,
         ),

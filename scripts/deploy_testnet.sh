@@ -4,7 +4,7 @@
 # View your keys with `starsd keys list`
 
 export CONTRACT_NAME=pegasus;
-export KEY_NAME=admin;
+export KEY_NAME=testnet;
 
 export WALLET_DATA=$(starsd keys show $KEY_NAME --output json | jq .);
 
@@ -16,7 +16,7 @@ echo "\nConnected to wallet '$KEY_NAME'<$KEY_TYPE> @ $KEY_ADDRESS";
 echo "\n========\n";
 
 # Instantiate message config
-export INSTANTIATE_MSG="{\"escrow_deposit_amount\": \"0\", \"offer_expiry\": {\"min\":86400,\"max\":604800}, \"maintainer\": \"$KEY_ADDRESS\", \"removal_reward_bps\": 0, \"max_offers\": 16, \"bundle_limit\": 5}";
+export INSTANTIATE_MSG="{\"offer_expiry\": {\"min\":86400,\"max\":604800}, \"maintainer\": \"$KEY_ADDRESS\", \"max_offers\": 16, \"bundle_limit\": 5}";
 echo $INSTANTIATE_MSG;
 
 ## INIT ##
@@ -62,7 +62,7 @@ CONTRACT_NAME=$CONTRACT_NAME$LARCH;
 echo "\n========\n";
 echo "Fetching CodeIDs...";
 export RES=$(starsd tx wasm store artifacts/$CONTRACT_NAME.wasm --from $KEY_NAME $TXFLAG -y --output json -b block);
-export CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value');
+export CODE_ID=$(echo $RES | jq -r '.logs[0].events[1].attributes[1].value');
 echo "CodeID found: $CODE_ID";
 
 # Instantiate the contract

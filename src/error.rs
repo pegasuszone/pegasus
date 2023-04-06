@@ -1,4 +1,5 @@
 use cosmwasm_std::StdError;
+use cw_utils::PaymentError;
 use thiserror::Error;
 
 use crate::helpers::ExpiryRangeError;
@@ -7,6 +8,12 @@ use crate::helpers::ExpiryRangeError;
 pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Payment(#[from] PaymentError),
+
+    #[error("Insufficient creator royalties paid")]
+    InsufficientRoyalties {},
 
     #[error("Can't create an offer without nfts")]
     EmptyTokenVector {},

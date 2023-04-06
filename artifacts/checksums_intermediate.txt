@@ -1,1 +1,2 @@
-d0ac37d9fc541c2a1e5cc403378d19ede7f58bf5b5559b3579a15bf32abc7fee  ./target/wasm32-unknown-unknown/release/pegasus.wasm
+d328fe13abc7d0d4dec1c022c08bc267de3d75334c9983442f4d2d1f30b372b4  ./target/wasm32-unknown-unknown/release/pegasus.wasm
+fa52d3ca776693cdb4a58ae654975fac14ef9e21f650fdf68292ba2389a7cb76  ./target/wasm32-unknown-unknown/release/sg_p2p_nft_trade.wasm

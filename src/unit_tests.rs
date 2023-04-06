@@ -11,7 +11,7 @@ use crate::{
     ExpiryRange,
 };
 
-use cosmwasm_std::{testing::*, Addr, DepsMut, StdError, Timestamp};
+use cosmwasm_std::{testing::*, Addr, Coin, DepsMut, StdError, Timestamp};
 
 const CREATOR: &str = "creator";
 const COLLECTION_A: &str = "collection-a";
@@ -54,7 +54,16 @@ fn remove_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
+    save_new_offer(
+        deps.as_mut(),
+        SENDER,
+        PEER,
+        0,
+        offered_nfts,
+        wanted_nfts,
+        vec![],
+        None,
+    );
 
     let exec_msg = ExecuteMsg::RemoveOffer { id: 0 };
 
@@ -111,7 +120,16 @@ fn reject_offer() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
+    save_new_offer(
+        deps.as_mut(),
+        SENDER,
+        PEER,
+        0,
+        offered_nfts,
+        wanted_nfts,
+        vec![],
+        None,
+    );
 
     let exec_msg = ExecuteMsg::RejectOffer { id: 0 };
 
@@ -187,7 +205,16 @@ fn test_query_indexes() {
         token_id: TOKEN2_ID,
     }];
 
-    save_new_offer(deps.as_mut(), SENDER, PEER, 0, offered_nfts, wanted_nfts);
+    save_new_offer(
+        deps.as_mut(),
+        SENDER,
+        PEER,
+        0,
+        offered_nfts,
+        wanted_nfts,
+        vec![],
+        None,
+    );
 
     let res = query_offers_by_peer(deps.as_ref(), Addr::unchecked(PEER)).unwrap();
     let res_sender = query_offers_by_sender(deps.as_ref(), Addr::unchecked(SENDER)).unwrap();
@@ -208,16 +235,21 @@ fn save_new_offer(
     id: u64,
     offered_nfts: Vec<Token>,
     wanted_nfts: Vec<Token>,
+    offered_balances: Vec<Coin>,
+    message: Option<String>,
 ) {
     let sender = Addr::unchecked(sender);
     let peer = Addr::unchecked(peer);
 
     let offer = Offer {
-        id: id,
-        offered_nfts: offered_nfts,
-        wanted_nfts: wanted_nfts,
-        sender: sender,
-        peer: peer,
+        id,
+        offered_nfts,
+        wanted_nfts,
+        sender,
+        peer,
+        offered_balances,
+        message,
+        royalties: vec![],
         expires_at: Timestamp::from_seconds(mock_env().block.time.plus_seconds(100_000).seconds()),
         created_at: mock_env().block.time,
     };
