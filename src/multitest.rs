@@ -273,18 +273,7 @@ fn create_offer() {
     };
 
     // empty offer is not allowed
-    let err = router
-        .execute_contract(
-            sender.clone(),
-            trade_contract.clone(),
-            &exec_create_msg,
-            &[],
-        )
-        .unwrap_err();
-    assert_eq!(
-        err.downcast::<ContractError>().unwrap(),
-        ContractError::EmptyTokenVector {}
-    );
+     
     // -----------
 
     // ------ TESTCASE: Exceeds bundle limit ----------

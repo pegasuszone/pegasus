@@ -33,9 +33,6 @@ pub fn execute_create_offer(
     if offered_tokens.is_empty() {
         return Err(ContractError::EmptyTokenVector {});
     }
-    if wanted_tokens.is_empty() {
-        return Err(ContractError::EmptyTokenVector {});
-    }
 
     let offers_from_sender = query_offers_by_sender(deps.as_ref(), info.sender.clone())?;
     let params = SUDO_PARAMS.load(deps.storage)?;
@@ -320,7 +317,9 @@ pub fn execute_accept_offer(
 
     // transfer nfts
     transfer_nfts(offer.peer.to_string(), offer.offered_nfts.clone(), &mut res)?;
-    transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
+    if offer.wanted_nfts.len() > 0 {
+        transfer_nfts(offer.sender.to_string(), offer.wanted_nfts, &mut res)?;
+    }
 
     // transfer funds to peer
     let mut send_msgs = vec![];
