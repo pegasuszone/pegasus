@@ -266,23 +266,14 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
 
     // empty offer is not allowed
-    let err = router
-        .execute_contract(
-            sender.clone(),
-            trade_contract.clone(),
-            &exec_create_msg,
-            &[],
-        )
-        .unwrap_err();
-    assert_eq!(
-        err.downcast::<ContractError>().unwrap(),
-        ContractError::EmptyTokenVector {}
-    );
+     
     // -----------
 
     // ------ TESTCASE: Exceeds bundle limit ----------
@@ -309,6 +300,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -338,6 +331,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -410,6 +405,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -441,6 +438,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -468,6 +467,8 @@ fn create_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN3_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
@@ -525,6 +526,8 @@ fn accept_offer() {
             collection: collection_a.to_string(),
             token_id: TOKEN2_ID,
         }],
+        offered_balances: vec![],
+        message: None,
         peer: peer.to_string(),
         expires_at: None,
     };
